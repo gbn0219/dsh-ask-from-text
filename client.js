@@ -1269,23 +1269,35 @@ window.__ModuleLoader__.load({
         const ids = new Set(state.order
           .map(id => state.branches[id]?.sessionId)
           .filter(Boolean))
-        const parents = new Map()
+        const branchRows = []
         for (const id of ids) {
           for (const row of document.querySelectorAll(`[data-row-key="session:${cssEscape(id)}"]`)) {
             if (row.closest('[data-ifu-root]')) continue
-            const parent = row.parentElement
-            if (!parent) continue
-            const list = parents.get(parent) || []
-            list.push(row)
-            parents.set(parent, list)
+            if (row.getClientRects().length === 0) continue
+            branchRows.push(row)
           }
         }
-        const activeParents = new Set(parents.keys())
-        for (const header of document.querySelectorAll('[data-ifu-sidebar-group]')) {
-          if (!activeParents.has(header.parentElement)) header.remove()
+        const selectedMain = document.querySelector('[data-row-key^="session:"][aria-selected="true"]')
+        const groupsByTree = new Map()
+        for (const row of branchRows) {
+          const tree = row.closest('[role="tree"]') || row.parentElement
+          if (!tree) continue
+          const list = groupsByTree.get(tree) || []
+          list.push(row)
+          groupsByTree.set(tree, list)
         }
-        for (const [parent, rows] of parents) {
-          let header = parent.querySelector(':scope > [data-ifu-sidebar-group]')
+        const usedHeaders = new Set()
+        for (const [tree, rows] of groupsByTree) {
+          const mainRow = selectedMain && tree.contains(selectedMain)
+            ? selectedMain
+            : (state.mainSessionId
+              ? tree.querySelector(`[data-row-key="session:${cssEscape(state.mainSessionId)}"]`)
+              : null)
+          const nodes = [mainRow, ...rows].filter(Boolean)
+          let common = nodes[0]?.parentElement
+          while (common && nodes.some(node => !common.contains(node))) common = common.parentElement
+          if (!common || common === document.body || common === document.documentElement) continue
+          let header = common.querySelector(':scope > [data-ifu-sidebar-group]')
           if (!header) {
             header = document.createElement('button')
             header.type = 'button'
@@ -1297,51 +1309,28 @@ window.__ModuleLoader__.load({
               toggleSidebarBranches()
             })
           }
-          const first = rows[0]
-          if (header.nextSibling !== first) parent.insertBefore(header, first)
+          const directChild = (node) => {
+            let element = node
+            while (element && element.parentElement !== common) element = element.parentElement
+            return element && element.parentElement === common ? element : null
+          }
+          const firstChild = directChild(rows[0])
+          if (!firstChild) continue
+          if (header.nextSibling !== firstChild) common.insertBefore(header, firstChild)
           const label = `${state.sidebarCollapsed ? '▸' : '▾'} 追问分支 · ${rows.length}`
           if (header.textContent !== label) header.textContent = label
+          usedHeaders.add(header)
           for (const row of rows) row.classList.toggle('ifu-sidebar-hidden', state.sidebarCollapsed)
-          // Keep the main conversation row above its branch rows even when the
-          // host sort places a recently used branch first. Moving the row at
-          // the React-owned DOM level is deliberate: the Session list is not a
-          // flex/order container, and the collapsible group header sits here.
-          const mainId = state.mainSessionId
-          // The selected row is the conversation currently open in the main
-          // view. It is more reliable than a possibly stale plugin session id.
-          const selectedRow = parent.querySelector(':scope > [data-row-key^="session:"][aria-selected="true"]')
-          const mainRow = selectedRow || (mainId
-            ? parent.querySelector(`:scope > [data-row-key="session:${cssEscape(mainId)}"]`)
-            : null)
-          if (mainRow && mainRow !== header
-            && (mainRow.compareDocumentPosition(header) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
-            parent.insertBefore(mainRow, header)
+          if (!mainRow) continue
+          const mainChild = directChild(mainRow)
+          if (mainChild && mainChild !== header && mainChild !== firstChild
+            && (mainChild.compareDocumentPosition(header) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+            common.insertBefore(mainChild, header)
           }
         }
-        // If the main and branch sessions live in different Workspace sections,
-        // move the main section above the first branch section. This keeps the
-        // workspace structure intact instead of transplanting the row.
-        const selectedMain = document.querySelector('[data-row-key^="session:"][aria-selected="true"]')
-        const firstParent = parents.keys().next().value
-        const firstBranch = firstParent ? parents.get(firstParent)?.[0] : null
-        if (selectedMain && firstBranch && selectedMain.parentElement !== firstBranch.parentElement) {
-          let common = selectedMain.parentElement
-          while (common && !common.contains(firstBranch)) common = common.parentElement
-          if (common && common.getAttribute && common.getAttribute('role') === 'tree') {
-            const directChild = (node) => {
-              let element = node
-              while (element && element.parentElement !== common) element = element.parentElement
-              return element && element.parentElement === common ? element : null
-            }
-            const mainSection = directChild(selectedMain)
-            const branchSection = directChild(firstBranch)
-            if (mainSection && branchSection && mainSection !== branchSection
-              && (mainSection.compareDocumentPosition(branchSection) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
-              common.insertBefore(mainSection, branchSection)
-            }
-          }
+        for (const header of document.querySelectorAll('[data-ifu-sidebar-group]')) {
+          if (!usedHeaders.has(header)) header.remove()
         }
-        // Keep row classes correct even when no parent could be found this pass.
         for (const id of ids) {
           for (const row of document.querySelectorAll(`[data-row-key="session:${cssEscape(id)}"]`)) {
             if (!row.closest('[data-ifu-root]')) row.classList.toggle('ifu-sidebar-hidden', state.sidebarCollapsed)
