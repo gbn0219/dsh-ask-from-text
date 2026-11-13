@@ -1,0 +1,72 @@
+{
+  "name": "dsh-inline-followup",
+  "version": "0.1.8",
+  "type": "module",
+  "description": "Ask a follow-up from selected text in a DeepSeek Harness answer, in a real Session branch with a tree of context.",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "docs/images",
+    "icon.svg",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-api-session-controller",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-session",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-chat",
+        "@deepseek-ai/dsh-client-locale"
+      ]
+    }
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "deepseek",
+    "chat",
+    "follow-up",
+    "branch",
+    "session-fork",
+    "ui"
+  ],
+  "author": "gbn0219",
+  "license": "MIT",
+  "homepage": "https://github.com/gbn0219/dsh-inline-followup#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gbn0219/dsh-inline-followup.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gbn0219/dsh-inline-followup/issues"
+  },
+  "engines": {
+    "dsh": ">=0.2.2-0 <0.3.0"
+  },
+  "main": "index.js",
+  "scripts": {
+    "check": "node --check index.js && node --check client.js",
+    "pack:check": "npm pack --dry-run"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
