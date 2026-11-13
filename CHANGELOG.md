@@ -10,6 +10,13 @@ project follows [Semantic Versioning](https://semver.org/).
 
 - README screenshots now use absolute CDN URLs so they render on the npm package page.
 
+## [0.1.13] - 2026-11-13
+
+### Fixed
+
+- Prefer the selected sidebar row when pinning the main conversation above its
+  branch group, and re-evaluate when the selected Session changes.
+
 ## [0.1.12] - 2026-11-13
 
 ### Changed
@@ -90,4 +97,5 @@ project follows [Semantic Versioning](https://semver.org/).
 [0.1.10]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.10
 [0.1.11]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.11
 [0.1.12]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.12
+[0.1.13]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.13
 [0.1.13]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.13

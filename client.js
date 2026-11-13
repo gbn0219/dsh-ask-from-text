@@ -1013,7 +1013,13 @@ window.__ModuleLoader__.load({
             })
             if (!own) scheduleProject()
           })
-          mutationObserver.observe(document.body, { childList: true, subtree: true, characterData: true })
+          mutationObserver.observe(document.body, {
+            childList: true,
+            subtree: true,
+            characterData: true,
+            attributes: true,
+            attributeFilter: ['aria-selected'],
+          })
         }
         scheduleProject()
         return () => {
@@ -1301,9 +1307,12 @@ window.__ModuleLoader__.load({
           // the React-owned DOM level is deliberate: the Session list is not a
           // flex/order container, and the collapsible group header sits here.
           const mainId = state.mainSessionId
-          const mainRow = mainId
+          // The selected row is the conversation currently open in the main
+          // view. It is more reliable than a possibly stale plugin session id.
+          const selectedRow = parent.querySelector(':scope > [data-row-key^="session:"][aria-selected="true"]')
+          const mainRow = selectedRow || (mainId
             ? parent.querySelector(`:scope > [data-row-key="session:${cssEscape(mainId)}"]`)
-            : null
+            : null)
           if (mainRow && mainRow !== header
             && (mainRow.compareDocumentPosition(header) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
             parent.insertBefore(mainRow, header)
