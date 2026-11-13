@@ -1296,6 +1296,18 @@ window.__ModuleLoader__.load({
           const label = `${state.sidebarCollapsed ? '▸' : '▾'} 追问分支 · ${rows.length}`
           if (header.textContent !== label) header.textContent = label
           for (const row of rows) row.classList.toggle('ifu-sidebar-hidden', state.sidebarCollapsed)
+          // Keep the main conversation row above its branch rows even when the
+          // host sort places a recently used branch first. Moving the row at
+          // the React-owned DOM level is deliberate: the Session list is not a
+          // flex/order container, and the collapsible group header sits here.
+          const mainId = state.mainSessionId
+          const mainRow = mainId
+            ? parent.querySelector(`:scope > [data-row-key="session:${cssEscape(mainId)}"]`)
+            : null
+          if (mainRow && mainRow !== header
+            && (mainRow.compareDocumentPosition(header) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+            parent.insertBefore(mainRow, header)
+          }
         }
         // Keep row classes correct even when no parent could be found this pass.
         for (const id of ids) {

@@ -4,6 +4,13 @@ All notable changes to `dsh-ask-from-text` are documented here. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.1.12] - 2026-11-13
+
+### Changed
+
+- The main conversation row stays above its branch rows in the left sidebar,
+  regardless of the host recency sort.
+
 ## [0.1.11] - 2026-11-13
 
 ### Changed
@@ -76,3 +83,4 @@ project follows [Semantic Versioning](https://semver.org/).
 [0.1.9]: https://github.com/gbn0219/dsh-inline-followup/releases/tag/v0.1.9
 [0.1.10]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.10
 [0.1.11]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.11
+[0.1.12]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.12
