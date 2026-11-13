@@ -1269,72 +1269,69 @@ window.__ModuleLoader__.load({
         const ids = new Set(state.order
           .map(id => state.branches[id]?.sessionId)
           .filter(Boolean))
-        const branchRows = []
+        const rows = []
         for (const id of ids) {
           for (const row of document.querySelectorAll(`[data-row-key="session:${cssEscape(id)}"]`)) {
-            if (row.closest('[data-ifu-root]')) continue
-            if (row.getClientRects().length === 0) continue
-            branchRows.push(row)
+            if (!row.closest('[data-ifu-root]')) rows.push(row)
           }
         }
+        if (rows.length === 0) {
+          for (const header of document.querySelectorAll('[data-ifu-sidebar-group]')) header.remove()
+          for (const row of document.querySelectorAll('.ifu-sidebar-hidden')) row.classList.remove('ifu-sidebar-hidden')
+          return
+        }
+        const first = rows[0]
+        const firstParent = first.parentElement
+        if (!firstParent) return
+        let header = firstParent.querySelector(':scope > [data-ifu-sidebar-group]')
+        if (!header) {
+          header = document.createElement('button')
+          header.type = 'button'
+          header.className = 'ifu-sidebar-group'
+          header.setAttribute('data-ifu-sidebar-group', '')
+          header.addEventListener('click', (event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            toggleSidebarBranches()
+          })
+        }
+        // Keep one shared header, inside the first branch wrapper. Putting it
+        // at the animated tree root would be clipped or ignored by the row
+        // animation layer; a wrapper child participates in the same layout as
+        // the original per-row header did.
+        for (const other of document.querySelectorAll('[data-ifu-sidebar-group]')) {
+          if (other !== header) other.remove()
+        }
+        if (header.nextSibling !== first) firstParent.insertBefore(header, first)
+        const label = `${state.sidebarCollapsed ? '▸' : '▾'} 追问分支 · ${rows.length}`
+        if (header.textContent !== label) header.textContent = label
+        for (const row of rows) row.classList.toggle('ifu-sidebar-hidden', state.sidebarCollapsed)
+
         const selectedMain = document.querySelector('[data-row-key^="session:"][aria-selected="true"]')
-        const groupsByTree = new Map()
-        for (const row of branchRows) {
-          const tree = row.closest('[role="tree"]') || row.parentElement
-          if (!tree) continue
-          const list = groupsByTree.get(tree) || []
-          list.push(row)
-          groupsByTree.set(tree, list)
+        const mainRow = selectedMain || (state.mainSessionId
+          ? document.querySelector(`[data-row-key="session:${cssEscape(state.mainSessionId)}"]`)
+          : null)
+        if (!mainRow) return
+        if (mainRow.parentElement === firstParent) {
+          if (mainRow !== header
+            && (mainRow.compareDocumentPosition(header) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+            firstParent.insertBefore(mainRow, header)
+          }
+          return
         }
-        const usedHeaders = new Set()
-        for (const [tree, rows] of groupsByTree) {
-          const mainRow = selectedMain && tree.contains(selectedMain)
-            ? selectedMain
-            : (state.mainSessionId
-              ? tree.querySelector(`[data-row-key="session:${cssEscape(state.mainSessionId)}"]`)
-              : null)
-          const nodes = [mainRow, ...rows].filter(Boolean)
-          let common = nodes[0]?.parentElement
-          while (common && nodes.some(node => !common.contains(node))) common = common.parentElement
-          if (!common || common === document.body || common === document.documentElement) continue
-          let header = common.querySelector(':scope > [data-ifu-sidebar-group]')
-          if (!header) {
-            header = document.createElement('button')
-            header.type = 'button'
-            header.className = 'ifu-sidebar-group'
-            header.setAttribute('data-ifu-sidebar-group', '')
-            header.addEventListener('click', (event) => {
-              event.preventDefault()
-              event.stopPropagation()
-              toggleSidebarBranches()
-            })
-          }
-          const directChild = (node) => {
-            let element = node
-            while (element && element.parentElement !== common) element = element.parentElement
-            return element && element.parentElement === common ? element : null
-          }
-          const firstChild = directChild(rows[0])
-          if (!firstChild) continue
-          if (header.nextSibling !== firstChild) common.insertBefore(header, firstChild)
-          const label = `${state.sidebarCollapsed ? '▸' : '▾'} 追问分支 · ${rows.length}`
-          if (header.textContent !== label) header.textContent = label
-          usedHeaders.add(header)
-          for (const row of rows) row.classList.toggle('ifu-sidebar-hidden', state.sidebarCollapsed)
-          if (!mainRow) continue
-          const mainChild = directChild(mainRow)
-          if (mainChild && mainChild !== header && mainChild !== firstChild
-            && (mainChild.compareDocumentPosition(header) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
-            common.insertBefore(mainChild, header)
-          }
+        let common = mainRow.parentElement
+        while (common && !common.contains(firstParent)) common = common.parentElement
+        if (!common || common === document.body || common === document.documentElement) return
+        const directChild = (node) => {
+          let element = node
+          while (element && element.parentElement !== common) element = element.parentElement
+          return element && element.parentElement === common ? element : null
         }
-        for (const header of document.querySelectorAll('[data-ifu-sidebar-group]')) {
-          if (!usedHeaders.has(header)) header.remove()
-        }
-        for (const id of ids) {
-          for (const row of document.querySelectorAll(`[data-row-key="session:${cssEscape(id)}"]`)) {
-            if (!row.closest('[data-ifu-root]')) row.classList.toggle('ifu-sidebar-hidden', state.sidebarCollapsed)
-          }
+        const mainChild = directChild(mainRow)
+        const branchChild = directChild(firstParent)
+        if (mainChild && branchChild && mainChild !== branchChild
+          && (mainChild.compareDocumentPosition(branchChild) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+          common.insertBefore(mainChild, branchChild)
         }
       }
 
