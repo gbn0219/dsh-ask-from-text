@@ -1314,10 +1314,28 @@ window.__ModuleLoader__.load({
         if (header.textContent !== label) header.textContent = label
         for (const row of rows) row.classList.toggle('ifu-sidebar-hidden', state.sidebarCollapsed)
 
-        const selectedMain = Array.from(document.querySelectorAll('[data-row-key^="session:"][aria-selected="true"]'))
+        const branchSessionIds = ids
+        const rootSessionIds = new Set(state.order
+          .map(id => state.branches[id]?.rootSessionId)
+          .filter(Boolean))
+        const sessionIdOf = (row) => {
+          const key = row.getAttribute('data-row-key') || ''
+          return key.startsWith('session:') ? key.slice('session:'.length) : null
+        }
+        const selectedRow = Array.from(document.querySelectorAll('[data-row-key^="session:"][aria-selected="true"]'))
           .find(row => row.getClientRects().length > 0) || null
-        const mainRow = selectedMain || (state.mainSessionId
-          ? Array.from(document.querySelectorAll(`[data-row-key="session:${cssEscape(state.mainSessionId)}"]`))
+        // A branch row can be selected too (opening it as the main view). Only a
+        // root/main Session may be pinned above the branch group; otherwise
+        // clicking a branch would make that branch jump above its siblings.
+        const selectedMain = selectedRow && rootSessionIds.has(sessionIdOf(selectedRow))
+          ? selectedRow
+          : null
+        let mainId = state.mainSessionId
+        if (mainId && branchSessionIds.has(mainId)) {
+          mainId = branchBySession(mainId)?.rootSessionId || null
+        }
+        const mainRow = selectedMain || (mainId
+          ? Array.from(document.querySelectorAll(`[data-row-key="session:${cssEscape(mainId)}"]`))
             .find(row => row.getClientRects().length > 0) || null
           : null)
         if (!mainRow) return
