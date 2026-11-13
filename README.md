@@ -1,12 +1,12 @@
-# 输出内追问 · Inline follow-up
+# 划词追问 · Ask from Text
 
 > 在 DeepSeek Harness 的回答里划一句话，就地追问；每个追问都是一条真实的 Session 分支，拥有一棵只向祖先继承的上下文树。
 
-[![DSH plugin](https://img.shields.io/badge/DSH-plugin-0.1.8-207F73?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
+[![DSH plugin](https://img.shields.io/badge/DSH-plugin-0.1.9-207F73?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
 [![License: MIT](https://img.shields.io/badge/license-MIT-C25A3A?style=flat-square)](LICENSE)
 ![Platform](https://img.shields.io/badge/platform-DSH%20Web%20%2F%20Desktop-5B63C4?style=flat-square)
 
-`dsh-inline-followup` 是一个 DeepSeek Harness（DSH）UI 插件：在已完成的 assistant 回答中划选文字，输入一个追问，插件会在选中事件处 fork 出一条真实 Session 分支，并用浮窗、舞台和分支树来浏览这些分支。
+**划词追问**（`dsh-inline-followup`）是一个 DeepSeek Harness（DSH）UI 插件：在已完成的 assistant 回答中划选文字，输入一个追问，插件会在选中事件处 fork 出一条真实 Session 分支，并用浮窗、舞台和分支树来浏览这些分支。
 
 ![多个追问、彩色标记与收起列表](docs/images/multi-branch.jpg)
 
@@ -37,7 +37,7 @@
 - 继续在主对话里问，问题越堆越多，上下文被稀释；
 - 复制到新会话，丢失原文和上下文。
 
-输出内追问把两者折中：**原文留在主对话，问题进入独立分支**。每个分支是真实的 DSH Session，能继续使用原生思考、工具调用、Stop 和 Composer；同时只继承它该看到的祖先路径。
+划词追问把两者折中：**原文留在主对话，问题进入独立分支**。每个分支是真实的 DSH Session，能继续使用原生思考、工具调用、Stop 和 Composer；同时只继承它该看到的祖先路径。
 
 适合：
 
@@ -117,7 +117,7 @@ dsh plugin --profile web add /absolute/path/to/dsh-inline-followup
 ### 安装后
 
 1. 完全退出并重开 DSH Desktop，或刷新 Web 页面（`Cmd/Ctrl + Shift + R`）。
-2. 打开 **插件**，确认 `Inline follow-up` 已启用，且图标/详情正常。
+2. 打开 **插件**，确认 `划词追问` / `Ask from Text` 已启用，且图标/详情正常。
 3. 在一个**已完成**的回答中划选文字开始使用。
 
 ## 使用
@@ -245,7 +245,7 @@ dsh plugin --profile web add /absolute/path/to/dsh-inline-followup
 
 ## English
 
-`dsh-inline-followup` is a client-side DSH plugin for **selection-based follow-up branches**.
+**Ask from Text** (`dsh-inline-followup`) is a client-side DSH plugin for **selection-based follow-up branches**.
 
 Select text in a completed assistant answer, choose the `✦ 追问` chip, type a question, and the plugin forks a real Session at the selected durable anchor. The branch is rendered with the shared Conversation UI, so native reasoning, tool calls, Stop, and the composer remain available.
 

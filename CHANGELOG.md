@@ -4,6 +4,14 @@ All notable changes to `dsh-inline-followup` are documented here. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.1.9] - 2026-11-13
+
+### Changed
+
+- Renamed the user-facing product to **划词追问 / Ask from Text**. The internal
+  package name stays `dsh-inline-followup` so existing installs and links keep
+  working.
+
 ## [0.1.8] - 2026-11-13
 
 ### Added
@@ -49,3 +57,4 @@ project follows [Semantic Versioning](https://semver.org/).
   native conversation rendering, colored marks, stage, and branch tree.
 
 [0.1.8]: https://github.com/gbn0219/dsh-inline-followup/releases/tag/v0.1.8
+[0.1.9]: https://github.com/gbn0219/dsh-inline-followup/releases/tag/v0.1.9

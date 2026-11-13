@@ -1,6 +1,6 @@
 {
   "name": "dsh-inline-followup",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "type": "module",
   "description": "Ask a follow-up from selected text in a DeepSeek Harness answer, in a real Session branch with a tree of context.",
   "exports": {

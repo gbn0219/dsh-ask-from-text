@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Inline follow-up",
+    "title": "Ask from Text",
     "description": "Select text in a completed assistant answer, ask in an independent input window, and continue in a real Session branch with colored marks, a branch tree, a stage view, and a collapsible sidebar group. Branches are real Sessions; sent branches can only be archived, and inherited context is visible to the model but hidden in the UI."
   }
 }
