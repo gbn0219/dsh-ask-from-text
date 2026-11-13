@@ -10,16 +10,16 @@
 
 需要 DeepSeek Harness 0.2.2-rc.x。
 
-### 从 npm 安装
-
-```sh
-dsh plugin --profile web add dsh-ask-from-text
-```
-
-### 从 GitHub 安装
+### 从 GitHub 安装（当前可用）
 
 ```sh
 dsh plugin --profile web add github:gbn0219/dsh-ask-from-text
+```
+
+### 从 npm 安装（发布后可用）
+
+```sh
+dsh plugin --profile web add dsh-ask-from-text
 ```
 
 ### 从本地目录安装
@@ -132,16 +132,16 @@ dsh plugin --profile web add /absolute/path/to/dsh-ask-from-text
 
 Requires DeepSeek Harness 0.2.2-rc.x.
 
-#### From npm
-
-```sh
-dsh plugin --profile web add dsh-ask-from-text
-```
-
-#### From GitHub
+#### From GitHub (available now)
 
 ```sh
 dsh plugin --profile web add github:gbn0219/dsh-ask-from-text
+```
+
+#### From npm (after the npm release)
+
+```sh
+dsh plugin --profile web add dsh-ask-from-text
 ```
 
 #### From a local directory
