@@ -4,6 +4,15 @@ All notable changes to `dsh-ask-from-text` are documented here. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.1.11] - 2026-11-13
+
+### Changed
+
+- The stage now shows the selected quote as a colored, independent block above
+  the conversation and hides the duplicate native blockquote.
+- The stage branch tree now matches the richer design: main-chat root, path/all
+  tabs, quote preview, parent context, status, and current/context badges.
+
 ## [0.1.10] - 2026-11-13
 
 ### Changed
@@ -66,3 +75,4 @@ project follows [Semantic Versioning](https://semver.org/).
 [0.1.8]: https://github.com/gbn0219/dsh-inline-followup/releases/tag/v0.1.8
 [0.1.9]: https://github.com/gbn0219/dsh-inline-followup/releases/tag/v0.1.9
 [0.1.10]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.10
+[0.1.11]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.11

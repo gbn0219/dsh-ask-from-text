@@ -1993,12 +1993,39 @@ window.__ModuleLoader__.load({
       )
     }
 
+    function StageQuote(props) {
+      const { branch } = props
+      const parent = branch.parentBranchId ? app.state.branches[branch.parentBranchId] : null
+      const basis = parent ? `#${parent.number}` : DICT.zh.main
+      return h('div', { className: 'ifu-stage-quote', title: branch.anchor.quote },
+        h('div', { className: 'ifu-stage-quote-label' },
+          h('span', { className: 'ifu-dot' }),
+          `${DICT.zh.quote} · ${DICT.zh.basedOn} ${basis}`,
+        ),
+        h('div', { className: 'ifu-stage-quote-text' }, branch.anchor.quote),
+      )
+    }
+
     function StageThread(props) {
       const { branch, SessionProvider, renderSlot } = props
       const reference = app.refs.get(branch.id)
+      const hostRef = useRef(null)
+      useLayoutEffect(() => {
+        const host = hostRef.current
+        if (!host) return undefined
+        const mark = () => {
+          const quote = host.querySelector('[data-chat-flow-kind="user"] blockquote')
+          if (quote) quote.classList.add('ifu-stage-native-quote')
+        }
+        mark()
+        const observer = new MutationObserver(mark)
+        observer.observe(host, { childList: true, subtree: true, characterData: true })
+        return () => observer.disconnect()
+      }, [branch.id])
       if (!reference) return h('div', { className: 'ifu-loading' }, branch.error || DICT.zh.sending)
       return h(SessionProvider, { session: reference },
         h('div', {
+          ref: hostRef,
           className: 'ifu-thread-host ifu-stage-thread',
           'data-ifu-session': branch.sessionId,
         }, renderSlot('followup.thread', { branchId: branch.id, cutSeq: branch.anchor.atSeq })),
@@ -2007,26 +2034,68 @@ window.__ModuleLoader__.load({
 
     function BranchTree() {
       useVersion()
+      const [scope, setScope] = useState('all')
       const state = app.state
       const branches = state.order
         .map(id => state.branches[id])
         .filter(branch => branch && branch.rootSessionId === state.mainSessionId)
       if (!state.treeOpen) return null
       const activeId = state.stageOpen && state.stageIndex >= 0 ? state.stageStack[state.stageIndex] : null
+      const activeBranch = activeId ? state.branches[activeId] : null
+      const path = activeBranch ? pathOf(state, activeBranch) : []
+      const pathIds = new Set(path.map(branch => branch.id))
       const rows = treeOrder(state, branches)
+      const visibleRows = scope === 'path' && activeBranch
+        ? rows.filter(row => pathIds.has(row.branch.id))
+        : rows
+      const contextText = path.length > 0
+        ? `${DICT.zh.main}${path.map(branch => ` → #${branch.number}`).join('')}`
+        : DICT.zh.main
       return h('aside', { className: 'ifu-tree', 'data-ifu-no-select': '' },
         h('div', { className: 'ifu-tree-head' },
           h('span', null, DICT.zh.tree),
+          h('div', { className: 'ifu-tree-tabs' },
+            h('button', {
+              type: 'button',
+              className: `ifu-tree-tab ${scope === 'path' ? 'is-active' : ''}`,
+              onClick: () => setScope('path'),
+            }, '路径'),
+            h('button', {
+              type: 'button',
+              className: `ifu-tree-tab ${scope === 'all' ? 'is-active' : ''}`,
+              onClick: () => setScope('all'),
+            }, '全部'),
+          ),
           h('button', { type: 'button', className: 'ifu-icon', title: DICT.zh.close, onClick: () => app.toggleTree() }, '✕'),
         ),
         h('div', { className: 'ifu-tree-list' },
-          rows.map(({ branch, depth }) => {
+          h('div', {
+            className: 'ifu-tree-root',
+            role: 'button',
+            tabIndex: 0,
+            onClick: () => app.stageClose(),
+            onKeyDown: (event) => {
+              if (event.key !== 'Enter' && event.key !== ' ') return
+              event.preventDefault()
+              app.stageClose()
+            },
+          },
+            h('span', { className: 'ifu-dot' }),
+            h('span', { className: 'ifu-tree-root-name' }, DICT.zh.main),
+            h('span', { className: 'ifu-tree-root-tag' }, 'ROOT'),
+            h('span', { className: 'ifu-tree-root-meta' }, '上下文起点'),
+          ),
+          visibleRows.map(({ branch, depth }) => {
             const isDraft = !branch.sessionId && !branch.prompted
+            const parent = branch.parentBranchId ? state.branches[branch.parentBranchId] : null
+            const parentLabel = parent ? `${DICT.zh.main} · #${parent.number}` : DICT.zh.main
+            const title = branch.question || branch.anchor.quote || '待提问'
+            const inPath = pathIds.has(branch.id)
             return h('div', {
               key: branch.id,
               role: 'button',
               tabIndex: 0,
-              className: `ifu-tree-row ${branch.id === activeId ? 'is-current' : ''} ${branch.mode === 'stage' ? 'is-stage' : ''}`,
+              className: `ifu-tree-row ${branch.id === activeId ? 'is-current' : ''} ${inPath ? 'is-path' : ''}`,
               style: { paddingLeft: `${10 + depth * 14}px`, ...colorVars(branch.color) },
               onClick: () => {
                 if (branch.id === activeId) return
@@ -2048,21 +2117,32 @@ window.__ModuleLoader__.load({
               },
               title: `${DICT.zh.switchBranch} #${branch.number}`,
             },
-              h('span', { className: 'ifu-dot' }),
-              h('span', { className: 'ifu-tree-num' }, `#${branch.number}`),
-              h('span', { className: 'ifu-tree-text' }, snippet(branch.question || branch.anchor.quote, 40)),
-              branch.id === activeId ? h('span', { className: 'ifu-tree-tag' }, DICT.zh.current) : null,
-              isDraft ? h('button', {
-                type: 'button',
-                className: 'ifu-tree-delete',
-                title: DICT.zh.deleteDraft,
-                onClick: (event) => { event.stopPropagation(); app.deleteDraft(branch.id) },
-              }, '⌫') : null,
+              h('div', { className: 'ifu-tree-top' },
+                h('span', { className: 'ifu-dot' }),
+                h('span', { className: 'ifu-tree-num' }, `#${branch.number}`),
+                h('span', { className: 'ifu-tree-title' }, snippet(title, 36)),
+                branch.id === activeId
+                  ? h('span', { className: 'ifu-tree-tag' }, DICT.zh.current)
+                  : inPath
+                    ? h('span', { className: 'ifu-tree-tag is-context' }, '上下文')
+                    : null,
+                isDraft ? h('button', {
+                  type: 'button',
+                  className: 'ifu-tree-delete',
+                  title: DICT.zh.deleteDraft,
+                  onClick: (event) => { event.stopPropagation(); app.deleteDraft(branch.id) },
+                }, '⌫') : null,
+              ),
+              h('div', { className: 'ifu-tree-quote' }, snippet(branch.anchor.quote, 72)),
+              h('div', { className: 'ifu-tree-meta' },
+                h('span', null, `${DICT.zh.basedOn} ${parentLabel}`),
+                h('span', null, statusLabel(branch)),
+              ),
             )
           }),
         ),
         h('div', { className: 'ifu-tree-note' },
-          '点击切换查看分支；切换只改变视图，不改变模型上下文。',
+          `当前模型上下文：${contextText}。兄弟分支不在其中。`,
         ),
       )
     }
@@ -2126,6 +2206,7 @@ window.__ModuleLoader__.load({
         ),
         h('div', { className: 'ifu-stage-tip' }, DICT.zh.stageHint),
         h('div', { className: 'ifu-stage-body' },
+          h(StageQuote, { branch }),
           reference && !branch.loading
             ? h(StageThread, { key: branch.id, branch, SessionProvider, renderSlot })
             : h('div', { className: 'ifu-loading' }, branch.error || DICT.zh.sending),
@@ -2491,8 +2572,13 @@ window.__ModuleLoader__.load({
       .ifu-stage-action { pointer-events:auto; position:relative; z-index:13; -webkit-app-region:no-drag; height:28px; padding:0 8px; border:1px solid var(--dsw-alias-border-l2,rgba(0,0,0,.12)); border-radius:6px; background:var(--dsw-alias-bg-layer-1,#fff); color:var(--dsw-alias-label-secondary,#3c4043); font:10px/1 var(--dsw-font-family-text,sans-serif); cursor:pointer; }
       .ifu-stage-action:hover { background:var(--dsw-alias-interactive-bg-hover,rgba(0,0,0,.06)); }
       .ifu-stage-tip { position:relative; z-index:11; flex:0 0 30px; display:flex; align-items:center; padding:0 18px; background:var(--dsw-alias-bg-module-platform,#f7f9fc); border-bottom:1px solid var(--dsw-alias-border-l1,rgba(0,0,0,.06)); color:var(--dsw-alias-label-tertiary,#61666b); font-size:10px; }
-      .ifu-stage-body { position:relative; z-index:1; flex:1; min-width:0; min-height:0; display:flex; overflow-x:hidden; }
-      .ifu-stage-thread { flex:1; min-width:0; height:100%; max-width:100%; overflow-x:hidden; }
+      .ifu-stage-body { position:relative; z-index:1; flex:1; min-width:0; min-height:0; display:flex; flex-direction:column; overflow-x:hidden; }
+      .ifu-stage-quote { flex:0 0 auto; box-sizing:border-box; width:min(calc(100% - 36px), var(--dsh-chat-content-width,760px)); margin:10px auto 0; padding:8px 11px; border:1px solid color-mix(in srgb, var(--ifu-c) 30%, transparent); border-left:3px solid var(--ifu-c); border-radius:8px; background:color-mix(in srgb, var(--ifu-c) 9%, var(--dsw-alias-bg-base,#fff)); color:var(--dsw-alias-label-primary,#0f1115); }
+      .ifu-stage-quote-label { display:flex; align-items:center; gap:5px; margin-bottom:4px; font-size:9px; color:var(--dsw-alias-label-tertiary,#61666b); }
+      .ifu-stage-quote-label .ifu-dot { flex:0 0 6px; }
+      .ifu-stage-quote-text { max-height:150px; overflow:auto; font-size:11px; line-height:1.55; white-space:pre-wrap; word-break:break-word; }
+      .ifu-stage-thread { flex:1; min-width:0; min-height:0; height:auto; max-width:100%; overflow-x:hidden; }
+      .ifu-stage-thread .ifu-stage-native-quote { display:none !important; }
       .ifu-resize { position:absolute; z-index:6; touch-action:none; }
       .ifu-e { right:-3px; top:0; bottom:0; width:7px; cursor:ew-resize; }
       .ifu-w { left:-3px; top:0; bottom:0; width:7px; cursor:ew-resize; }
@@ -2505,14 +2591,25 @@ window.__ModuleLoader__.load({
       .ifu-se::after { content:""; position:absolute; right:4px; bottom:4px; width:7px; height:7px; border-right:2px solid var(--dsw-alias-label-caption,#979da6); border-bottom:2px solid var(--dsw-alias-label-caption,#979da6); border-radius:0 0 2px 0; opacity:.6; }
       .ifu-tree { pointer-events:auto; position:absolute; -webkit-app-region:no-drag; top:86px; right:0; bottom:0; z-index:20; width:300px; display:flex; flex-direction:column; background:var(--dsw-specific-sidebar-fill,#fbfbfc); border-left:1px solid var(--dsw-alias-border-l2,rgba(0,0,0,.12)); box-shadow:-12px 0 30px rgba(15,17,21,.06); }
       .ifu-tree-head { display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--dsw-alias-border-l1,rgba(0,0,0,.06)); font-size:10px; color:var(--dsw-alias-label-tertiary,#61666b); }
-      .ifu-tree-head .ifu-icon { margin-left:auto; }
-      .ifu-tree-list { flex:1; min-height:0; overflow:auto; padding:6px; }
-      .ifu-tree-row { pointer-events:auto; width:100%; box-sizing:border-box; display:flex; align-items:center; gap:6px; border:0; border-radius:7px; background:transparent; padding:7px 7px; color:var(--dsw-alias-label-primary,#0f1115); text-align:left; cursor:pointer; }
-      .ifu-tree-row:hover { background:var(--dsw-alias-interactive-bg-hover,rgba(0,0,0,.06)); }
-      .ifu-tree-row.is-current { background:var(--dsw-alias-bg-layer-1,#fff); box-shadow:0 1px 2px rgba(0,0,0,.05),inset 0 0 0 1px rgba(0,0,0,.05); }
+      .ifu-tree-head .ifu-icon { margin-left:0; }
+      .ifu-tree-tabs { margin-left:auto; display:flex; gap:2px; padding:1px; border-radius:6px; background:var(--dsw-alias-bg-module-platform,#f1f3f5); }
+      .ifu-tree-tab { border:0; border-radius:5px; background:transparent; color:var(--dsw-alias-label-tertiary,#61666b); font:9px/1.4 var(--dsw-font-family-text,sans-serif); padding:3px 6px; cursor:pointer; }
+      .ifu-tree-tab.is-active { background:var(--dsw-alias-bg-layer-1,#fff); color:var(--dsw-alias-label-primary,#0f1115); box-shadow:0 1px 2px rgba(0,0,0,.06); }
+      .ifu-tree-list { flex:1; min-height:0; overflow:auto; padding:8px; display:flex; flex-direction:column; gap:6px; }
+      .ifu-tree-root { display:flex; align-items:center; gap:6px; box-sizing:border-box; padding:8px; border:1px solid var(--dsw-alias-border-l1,rgba(0,0,0,.06)); border-radius:8px; background:var(--dsw-alias-bg-module-platform,#f1f3f5); cursor:pointer; }
+      .ifu-tree-root-name { font-size:10px; color:var(--dsw-alias-label-primary,#0f1115); }
+      .ifu-tree-root-tag { margin-left:auto; font:8px/1 var(--dsw-font-family-code,monospace); color:var(--dsw-alias-label-caption,#979da6); }
+      .ifu-tree-root-meta { font-size:8px; color:var(--dsw-alias-label-caption,#979da6); }
+      .ifu-tree-row { pointer-events:auto; width:100%; box-sizing:border-box; display:flex; flex-direction:column; align-items:stretch; gap:4px; border:1px solid var(--dsw-alias-border-l1,rgba(0,0,0,.06)); border-radius:8px; background:var(--dsw-alias-bg-layer-1,#fff); padding:8px; color:var(--dsw-alias-label-primary,#0f1115); text-align:left; cursor:pointer; }
+      .ifu-tree-row:hover { border-color:color-mix(in srgb, var(--ifu-c) 36%, var(--dsw-alias-border-l2,rgba(0,0,0,.12))); }
+      .ifu-tree-row.is-current { border-color:var(--ifu-c); background:color-mix(in srgb, var(--ifu-c) 7%, var(--dsw-alias-bg-layer-1,#fff)); box-shadow:0 1px 3px rgba(0,0,0,.06); }
+      .ifu-tree-top { display:flex; align-items:center; gap:6px; min-width:0; }
       .ifu-tree-num { font:600 9px/1 var(--dsw-font-family-code,monospace); color:var(--dsw-alias-label-secondary,#3c4043); flex:0 0 auto; }
-      .ifu-tree-text { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:9.5px; color:var(--dsw-alias-label-tertiary,#61666b); }
-      .ifu-tree-tag { margin-left:auto; font-size:7.5px; color:var(--dsw-alias-state-success-primary,#2f8f62); }
+      .ifu-tree-title { min-width:0; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; color:var(--dsw-alias-label-primary,#0f1115); }
+      .ifu-tree-quote { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-left:6px; border-left:2px solid var(--ifu-c); font-size:9px; color:var(--dsw-alias-label-tertiary,#61666b); }
+      .ifu-tree-meta { display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:8px; color:var(--dsw-alias-label-caption,#979da6); }
+      .ifu-tree-tag { flex:0 0 auto; margin-left:auto; font-size:7.5px; color:var(--dsw-alias-state-success-primary,#2f8f62); }
+      .ifu-tree-tag.is-context { color:var(--ifu-c); }
       .ifu-tree-note { padding:10px 12px; border-top:1px solid var(--dsw-alias-border-l1,rgba(0,0,0,.06)); font-size:8.5px; line-height:1.5; color:var(--dsw-alias-label-caption,#979da6); }
       .ifu-badge-layer { position:absolute; inset:0; pointer-events:none; z-index:3; }
       .ifu-badge { position:absolute; z-index:3; pointer-events:auto; display:inline-flex; align-items:center; gap:4px; height:18px; padding:0 5px 0 4px; border:1px solid var(--dsw-alias-border-l2,rgba(0,0,0,.12)); border-radius:999px; background:var(--dsw-alias-bg-layer-1,#fff); color:var(--dsw-alias-label-tertiary,#61666b); font:600 8.5px/1 var(--dsw-font-family-code,monospace); box-shadow:0 2px 6px rgba(15,17,21,.08); cursor:pointer; }
