@@ -13,19 +13,19 @@
 ### 从 npm 安装
 
 ```sh
-dsh plugin --profile web add dsh-inline-followup
+dsh plugin --profile web add dsh-ask-from-text
 ```
 
 ### 从 GitHub 安装
 
 ```sh
-dsh plugin --profile web add github:gbn0219/dsh-inline-followup
+dsh plugin --profile web add github:gbn0219/dsh-ask-from-text
 ```
 
 ### 从本地目录安装
 
 ```sh
-dsh plugin --profile web add /absolute/path/to/dsh-inline-followup
+dsh plugin --profile web add /absolute/path/to/dsh-ask-from-text
 ```
 
 也可以打开 DSH Desktop 的 **插件 → 添加插件**，选择本地插件目录。
@@ -127,7 +127,7 @@ dsh plugin --profile web add /absolute/path/to/dsh-inline-followup
 Install:
 
 ```sh
-dsh plugin --profile web add dsh-inline-followup
+dsh plugin --profile web add dsh-ask-from-text
 ```
 
 Usage: select text → choose `✦ 追问` → type your question → send. Use `—` to collapse, `↗` to open the stage, and the bottom-right branch list to reopen a branch. Drafts can be deleted with `⌫`; sent branches are real Sessions and must be archived in DSH. Branch Sessions appear in the left sidebar under a collapsible `追问分支` group.

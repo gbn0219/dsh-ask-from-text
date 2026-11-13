@@ -11,7 +11,7 @@ README.
 
 ## GitHub
 
-The repository is expected to be `gbn0219/dsh-inline-followup`.
+The repository is expected to be `gbn0219/dsh-ask-from-text`.
 
 ```sh
 git add .
@@ -34,7 +34,7 @@ npm publish --access public
 After publishing, verify:
 
 ```sh
-npm view dsh-inline-followup version dist.tarball
+npm view dsh-ask-from-text version dist.tarball
 ```
 
 ## DSH community index

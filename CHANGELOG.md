@@ -1,16 +1,23 @@
 # Changelog
 
-All notable changes to `dsh-inline-followup` are documented here. The format is
+All notable changes to `dsh-ask-from-text` are documented here. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/).
+
+## [0.1.10] - 2026-11-13
+
+### Changed
+
+- Renamed the package and GitHub repository to `dsh-ask-from-text`. The
+  localStorage UI key stays `dsh.inline-followup.v1` so existing branch metadata
+  survives the rename.
 
 ## [0.1.9] - 2026-11-13
 
 ### Changed
 
-- Renamed the user-facing product to **划词追问 / Ask from Text**. The internal
-  package name stays `dsh-inline-followup` so existing installs and links keep
-  working.
+- Renamed the user-facing product to **划词追问 / Ask from Text**. At this
+  version the internal package name was still `dsh-inline-followup`.
 
 ## [0.1.8] - 2026-11-13
 
@@ -58,3 +65,4 @@ project follows [Semantic Versioning](https://semver.org/).
 
 [0.1.8]: https://github.com/gbn0219/dsh-inline-followup/releases/tag/v0.1.8
 [0.1.9]: https://github.com/gbn0219/dsh-inline-followup/releases/tag/v0.1.9
+[0.1.10]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.10

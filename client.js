@@ -7,7 +7,7 @@
  * store here only owns UI metadata (tree, anchors, colors, panel state).
  */
 window.__ModuleLoader__.load({
-  id: 'dsh-inline-followup',
+  id: 'dsh-ask-from-text',
   factory(require) {
     const React = require('react')
     const h = React.createElement

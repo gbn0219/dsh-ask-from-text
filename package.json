@@ -1,6 +1,6 @@
 {
-  "name": "dsh-inline-followup",
-  "version": "0.1.9",
+  "name": "dsh-ask-from-text",
+  "version": "0.1.10",
   "type": "module",
   "description": "Ask a follow-up from selected text in a DeepSeek Harness answer, in a real Session branch with a tree of context.",
   "exports": {
@@ -50,13 +50,13 @@
   ],
   "author": "gbn0219",
   "license": "MIT",
-  "homepage": "https://github.com/gbn0219/dsh-inline-followup#readme",
+  "homepage": "https://github.com/gbn0219/dsh-ask-from-text#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gbn0219/dsh-inline-followup.git"
+    "url": "git+https://github.com/gbn0219/dsh-ask-from-text.git"
   },
   "bugs": {
-    "url": "https://github.com/gbn0219/dsh-inline-followup/issues"
+    "url": "https://github.com/gbn0219/dsh-ask-from-text/issues"
   },
   "engines": {
     "dsh": ">=0.2.2-0 <0.3.0"
