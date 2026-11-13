@@ -1272,7 +1272,12 @@ window.__ModuleLoader__.load({
         const rows = []
         for (const id of ids) {
           for (const row of document.querySelectorAll(`[data-row-key="session:${cssEscape(id)}"]`)) {
-            if (!row.closest('[data-ifu-root]')) rows.push(row)
+            if (row.closest('[data-ifu-root]')) continue
+            // Keep rows hidden by our own collapsed state in the group so the
+            // header stays clickable; skip rows hidden inside a folded
+            // Workspace or a stale search tree.
+            if (row.getClientRects().length === 0 && !row.classList.contains('ifu-sidebar-hidden')) continue
+            rows.push(row)
           }
         }
         if (rows.length === 0) {
@@ -1307,9 +1312,11 @@ window.__ModuleLoader__.load({
         if (header.textContent !== label) header.textContent = label
         for (const row of rows) row.classList.toggle('ifu-sidebar-hidden', state.sidebarCollapsed)
 
-        const selectedMain = document.querySelector('[data-row-key^="session:"][aria-selected="true"]')
+        const selectedMain = Array.from(document.querySelectorAll('[data-row-key^="session:"][aria-selected="true"]'))
+          .find(row => row.getClientRects().length > 0) || null
         const mainRow = selectedMain || (state.mainSessionId
-          ? document.querySelector(`[data-row-key="session:${cssEscape(state.mainSessionId)}"]`)
+          ? Array.from(document.querySelectorAll(`[data-row-key="session:${cssEscape(state.mainSessionId)}"]`))
+            .find(row => row.getClientRects().length > 0) || null
           : null)
         if (!mainRow) return
         if (mainRow.parentElement === firstParent) {
