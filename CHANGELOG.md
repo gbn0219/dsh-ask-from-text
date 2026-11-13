@@ -4,11 +4,25 @@ All notable changes to `dsh-ask-from-text` are documented here. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.1.14] - 2026-11-13
+
+### Fixed
+
+- Handle main and branch Sessions that the sidebar places in different
+  Workspace sections by moving the main section above the first branch section.
+
 ## [0.1.13] - 2026-11-13
 
 ### Fixed
 
 - README screenshots now use absolute CDN URLs so they render on the npm package page.
+
+## [0.1.14] - 2026-11-13
+
+### Fixed
+
+- Handle main and branch Sessions that the sidebar places in different
+  Workspace sections by moving the main section above the first branch section.
 
 ## [0.1.13] - 2026-11-13
 
@@ -98,4 +112,6 @@ project follows [Semantic Versioning](https://semver.org/).
 [0.1.11]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.11
 [0.1.12]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.12
 [0.1.13]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.13
+[0.1.14]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.14
 [0.1.13]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.13
+[0.1.14]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.14

@@ -1318,6 +1318,29 @@ window.__ModuleLoader__.load({
             parent.insertBefore(mainRow, header)
           }
         }
+        // If the main and branch sessions live in different Workspace sections,
+        // move the main section above the first branch section. This keeps the
+        // workspace structure intact instead of transplanting the row.
+        const selectedMain = document.querySelector('[data-row-key^="session:"][aria-selected="true"]')
+        const firstParent = parents.keys().next().value
+        const firstBranch = firstParent ? parents.get(firstParent)?.[0] : null
+        if (selectedMain && firstBranch && selectedMain.parentElement !== firstBranch.parentElement) {
+          let common = selectedMain.parentElement
+          while (common && !common.contains(firstBranch)) common = common.parentElement
+          if (common && common.getAttribute && common.getAttribute('role') === 'tree') {
+            const directChild = (node) => {
+              let element = node
+              while (element && element.parentElement !== common) element = element.parentElement
+              return element && element.parentElement === common ? element : null
+            }
+            const mainSection = directChild(selectedMain)
+            const branchSection = directChild(firstBranch)
+            if (mainSection && branchSection && mainSection !== branchSection
+              && (mainSection.compareDocumentPosition(branchSection) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
+              common.insertBefore(mainSection, branchSection)
+            }
+          }
+        }
         // Keep row classes correct even when no parent could be found this pass.
         for (const id of ids) {
           for (const row of document.querySelectorAll(`[data-row-key="session:${cssEscape(id)}"]`)) {
