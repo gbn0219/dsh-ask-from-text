@@ -1280,6 +1280,8 @@ window.__ModuleLoader__.load({
             rows.push(row)
           }
         }
+        rows.sort((a, b) => a === b ? 0
+          : (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1)
         if (rows.length === 0) {
           for (const header of document.querySelectorAll('[data-ifu-sidebar-group]')) header.remove()
           for (const row of document.querySelectorAll('.ifu-sidebar-hidden')) row.classList.remove('ifu-sidebar-hidden')

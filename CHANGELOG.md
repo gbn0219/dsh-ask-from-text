@@ -4,6 +4,13 @@ All notable changes to `dsh-ask-from-text` are documented here. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.1.18] - 2026-11-13
+
+### Fixed
+
+- Put the shared `追问分支` header before the topmost branch row in visual
+  document order, so collapsing/expanding no longer moves it below the group.
+
 ## [0.1.17] - 2026-11-13
 
 ### Fixed
@@ -40,6 +47,13 @@ project follows [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - README screenshots now use absolute CDN URLs so they render on the npm package page.
+
+## [0.1.18] - 2026-11-13
+
+### Fixed
+
+- Put the shared `追问分支` header before the topmost branch row in visual
+  document order, so collapsing/expanding no longer moves it below the group.
 
 ## [0.1.17] - 2026-11-13
 
@@ -164,8 +178,10 @@ project follows [Semantic Versioning](https://semver.org/).
 [0.1.15]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.15
 [0.1.16]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.16
 [0.1.17]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.17
+[0.1.18]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.18
 [0.1.13]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.13
 [0.1.14]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.14
 [0.1.15]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.15
 [0.1.16]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.16
 [0.1.17]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.17
+[0.1.18]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.18
