@@ -15,9 +15,9 @@ The repository is expected to be `gbn0219/dsh-inline-followup`.
 
 ```sh
 git add .
-git commit -m "release: v0.1.8"
-git tag -d v0.1.8 2>/dev/null || true
-git tag v0.1.8
+git commit -m "release: v0.1.9"
+git tag -d v0.1.9 2>/dev/null || true
+git tag v0.1.9
 git push -u origin main
 git push --tags
 ```
