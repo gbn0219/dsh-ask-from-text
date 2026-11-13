@@ -122,17 +122,125 @@ dsh plugin --profile web add /absolute/path/to/dsh-ask-from-text
 
 ## English
 
-**Ask from Text** lets you select a sentence in a completed assistant answer and ask a follow-up in a separate floating branch.
+**Ask from Text** lets you select a sentence in a completed assistant answer and ask a question in a separate floating branch, while keeping the original text marked in place.
 
-Install:
+![Multiple branches and the collapsed-branch list](docs/images/multi-branch.jpg)
+
+> Interface illustration. In the current version a new follow-up opens only an input window; the full conversation window appears after you send the first question.
+
+### Install
+
+Requires DeepSeek Harness 0.2.2-rc.x.
+
+#### From npm
 
 ```sh
 dsh plugin --profile web add dsh-ask-from-text
 ```
 
-Usage: select text → choose `✦ 追问` → type your question → send. Use `—` to collapse, `↗` to open the stage, and the bottom-right branch list to reopen a branch. Drafts can be deleted with `⌫`; sent branches are real Sessions and must be archived in DSH. Branch Sessions appear in the left sidebar under a collapsible `追问分支` group.
+#### From GitHub
 
-Runtime UI labels are currently Chinese.
+```sh
+dsh plugin --profile web add github:gbn0219/dsh-ask-from-text
+```
+
+#### From a local directory
+
+```sh
+dsh plugin --profile web add /absolute/path/to/dsh-ask-from-text
+```
+
+You can also open **Plugins → Add plugin** in DSH Desktop and choose the local plugin directory.
+
+After installation, fully quit and reopen DSH, or refresh the Web page. Open **Plugins** and confirm that **Ask from Text** is enabled.
+
+### Usage
+
+#### 1. Select text
+
+Select text in a **completed** assistant answer.
+
+A `✦ 追问` button appears near the selection. Click it.
+
+> Streaming answers, user messages, tool argument editors, and the plugin's own windows cannot be used as follow-up sources.
+
+#### 2. Enter the first question
+
+An independent input window opens:
+
+- Type your question.
+- Press `Enter` or click **Send**.
+- After the question is accepted, the input window disappears and the branch conversation window appears.
+
+The selected text stays in the main transcript with a colored underline and a gutter number such as `#1`.
+
+#### 3. Continue or create a child branch
+
+In the branch conversation window:
+
+- Use the native composer at the bottom to continue the conversation.
+- Select text inside the branch answer to create a child branch.
+
+A branch inherits its parent and ancestors only. Sibling branches cannot see one another.
+
+#### 4. Collapse and restore
+
+- Click `—` in the window header to collapse the branch.
+- The source text keeps its colored underline and `#n` marker.
+- Click the `#n` marker, or a row in the bottom-right **Collapsed branches** list, to reopen it.
+- Opening a row scrolls the exact quoted range to the center of the transcript.
+
+#### 5. Open the stage
+
+Click `↗` in the window header to open the branch on the stage.
+
+The stage provides:
+
+- `← Back` / `Forward →` to move through branches you have viewed.
+- `Main chat › #n` breadcrumbs to jump to a level.
+- `▤ Branches` to open the full branch tree.
+- `↘ Restore to window` to return to the floating window.
+- `✕ Close` to return to the main chat.
+
+![Stage and branch tree](docs/images/stage-and-tree.jpg)
+
+#### 6. Delete a draft
+
+A follow-up that has not been sent is a draft. Delete it with the red `⌫` action in:
+
+- The input window header.
+- The bottom-right collapsed-branch list.
+- The branch tree on the stage.
+
+A sent follow-up is a real Session and cannot be deleted by the plugin. Archive it from the DSH Session list instead.
+
+#### 7. Collapse branches in the left sidebar
+
+Every follow-up appears as a real Session in the left sidebar.
+
+These sessions are grouped under a `追问分支` header. Click the header to collapse or expand the group without affecting the main chat or other sessions.
+
+### Notes
+
+- A follow-up is a real DSH Session. It can use reasoning, tool calls, Stop, and the native composer.
+- A branch sees its parent and ancestors, not siblings, and does not automatically receive later turns added to its parent.
+- Branch conversations also appear in the normal Session list. This is expected.
+- Runtime UI labels are currently Chinese; Plugin Manager metadata is available in Chinese and English.
+- DSH Desktop is the primary target. The Web client shares the same UI, but narrow-screen behavior has not been specifically polished.
+
+### FAQ
+
+**Why are there extra sessions in the left sidebar?**  
+Each follow-up is a real Session. Use the `追问分支` group to collapse them.
+
+**Can I delete a sent follow-up?**  
+Not from the plugin. Archive sent branches from the DSH Session list. Only drafts can be deleted with `⌫`.
+
+**Why did the source text not scroll to the center?**  
+If its Turn is folded or not loaded yet, the plugin tries to load it first. If that still fails, expand that Turn and click the branch again.
+
+**Does this send my conversation anywhere else?**  
+No. The plugin makes no network requests; conversations use DSH's own Session and model paths.
 
 ## License
 
