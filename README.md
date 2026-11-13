@@ -2,7 +2,7 @@
 
 在 DeepSeek Harness 的回答里划选一句话，输入追问；回答会在独立的浮窗中继续，并保留原文标记。
 
-![多个追问与收起列表](docs/images/multi-branch.jpg)
+![多个追问与收起列表](https://cdn.jsdelivr.net/gh/gbn0219/dsh-ask-from-text@main/docs/images/multi-branch.jpg)
 
 > 界面示意图。当前版本新建追问时只弹出一个输入浮窗；发送后才会显示完整对话浮窗。
 
@@ -80,7 +80,7 @@ dsh plugin --profile web add /absolute/path/to/dsh-ask-from-text
 - `↘ 还原为浮窗`：回到小浮窗；
 - `✕ 关闭`：回到主对话。
 
-![舞台与分支树](docs/images/stage-and-tree.jpg)
+![舞台与分支树](https://cdn.jsdelivr.net/gh/gbn0219/dsh-ask-from-text@main/docs/images/stage-and-tree.jpg)
 
 ### 6. 删除草稿
 
@@ -124,7 +124,7 @@ dsh plugin --profile web add /absolute/path/to/dsh-ask-from-text
 
 **Ask from Text** lets you select a sentence in a completed assistant answer and ask a question in a separate floating branch, while keeping the original text marked in place.
 
-![Multiple branches and the collapsed-branch list](docs/images/multi-branch.jpg)
+![Multiple branches and the collapsed-branch list](https://cdn.jsdelivr.net/gh/gbn0219/dsh-ask-from-text@main/docs/images/multi-branch.jpg)
 
 > Interface illustration. In the current version a new follow-up opens only an input window; the full conversation window appears after you send the first question.
 
@@ -202,7 +202,7 @@ The stage provides:
 - `↘ Restore to window` to return to the floating window.
 - `✕ Close` to return to the main chat.
 
-![Stage and branch tree](docs/images/stage-and-tree.jpg)
+![Stage and branch tree](https://cdn.jsdelivr.net/gh/gbn0219/dsh-ask-from-text@main/docs/images/stage-and-tree.jpg)
 
 #### 6. Delete a draft
 
