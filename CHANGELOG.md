@@ -4,6 +4,14 @@ All notable changes to `dsh-ask-from-text` are documented here. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.1.21] - 2026-11-13
+
+### Added
+
+- Runtime dictionaries and Plugin Manager metadata for Japanese, Spanish,
+  French, German, Russian, and Brazilian Portuguese, completing the eight DSH
+  languages. Unsupported locales fall back to English.
+
 ## [0.1.20] - 2026-11-13
 
 ### Added
@@ -62,6 +70,14 @@ project follows [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - README screenshots now use absolute CDN URLs so they render on the npm package page.
+
+## [0.1.21] - 2026-11-13
+
+### Added
+
+- Runtime dictionaries and Plugin Manager metadata for Japanese, Spanish,
+  French, German, Russian, and Brazilian Portuguese, completing the eight DSH
+  languages. Unsupported locales fall back to English.
 
 ## [0.1.20] - 2026-11-13
 
@@ -211,6 +227,7 @@ project follows [Semantic Versioning](https://semver.org/).
 [0.1.18]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.18
 [0.1.19]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.19
 [0.1.20]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.20
+[0.1.21]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.21
 [0.1.13]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.13
 [0.1.14]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.14
 [0.1.15]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.15
@@ -219,3 +236,4 @@ project follows [Semantic Versioning](https://semver.org/).
 [0.1.18]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.18
 [0.1.19]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.19
 [0.1.20]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.20
+[0.1.21]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.21

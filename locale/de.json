@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Aus Text nachfragen",
+    "description": "Text in einer abgeschlossenen Assistant-Antwort auswählen, in einem unabhängigen Eingabefenster nachfragen und in einem echten Session-Zweig weiterarbeiten. Farbige Markierungen, Zweigbaum, Bühne und einklappbare Seitenleisten-Gruppe. Zweige sind echte Sessions; gesendete Zweige können nur archiviert werden."
+  }
+}

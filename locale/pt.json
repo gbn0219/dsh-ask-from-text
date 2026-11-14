@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Perguntar a partir do texto",
+    "description": "Selecione texto em uma resposta concluída do assistant, pergunte em uma janela de entrada independente e continue em um ramo de Session real. Marcas coloridas, árvore de ramos, palco e grupo recolhível na barra lateral. Os ramos são Sessions reais; ramos enviados só podem ser arquivados."
+  }
+}

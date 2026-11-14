@@ -103,7 +103,7 @@ dsh plugin --profile web add /absolute/path/to/dsh-ask-from-text
 - 追问回答是真实的 DSH Session，可以使用思考、工具调用、Stop 和原生输入框。
 - 分支只看到父级和祖先内容，不看到兄弟分支，也不会自动获得父级后来新增的内容。
 - 分支对话会出现在普通 Session 列表中，这是正常现象。
-- 界面文案跟随 DSH 语言：中文/英文；其他语言自动回退英文。原生对话区域继续跟随 DSH 自身的语言。
+- 界面文案跟随 DSH 语言，内置中文、英文、日语、西班牙语、法语、德语、俄语、巴西葡萄牙语；其他语言回退英文。原生对话区域继续跟随 DSH 自身的语言。
 - 目前主要面向 DSH Desktop；Web 共用同一套 UI，窄屏体验尚未专门优化。
 
 ## 常见问题
@@ -225,7 +225,7 @@ These sessions are grouped under a `追问分支` header. Click the header to co
 - A follow-up is a real DSH Session. It can use reasoning, tool calls, Stop, and the native composer.
 - A branch sees its parent and ancestors, not siblings, and does not automatically receive later turns added to its parent.
 - Branch conversations also appear in the normal Session list. This is expected.
-- Runtime UI follows the DSH language: Chinese and English are bundled; other languages fall back to English. The native conversation follows DSH.
+- Runtime UI follows the DSH language: Chinese, English, Japanese, Spanish, French, German, Russian, and Brazilian Portuguese are bundled; other languages fall back to English. The native conversation follows DSH.
 - DSH Desktop is the primary target. The Web client shares the same UI, but narrow-screen behavior has not been specifically polished.
 
 ### FAQ

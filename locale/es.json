@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Preguntar desde el texto",
+    "description": "Selecciona texto en una respuesta completa del assistant, pregunta en una ventana de entrada independiente y continúa en una rama de Session real. Incluye marcas de color, árbol de ramas, escenario y un grupo plegable en la barra lateral. Las ramas son Sessions reales; las ramas enviadas solo se pueden archivar."
+  }
+}
