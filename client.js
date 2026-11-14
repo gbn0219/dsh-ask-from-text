@@ -1656,9 +1656,26 @@ window.__ModuleLoader__.load({
           if (other !== header) other.remove()
         }
         if (header.nextSibling !== first) firstParent.insertBefore(header, first)
-        const label = `${state.sidebarCollapsed ? '▸' : '▾'} ${app.t('sidebarGroup')} · ${rows.length}`
+        const label = `${state.sidebarCollapsed ? '▸' : '▾'} ${app.t('sidebarGroup')} · ${ids.size}`
         if (header.textContent !== label) header.textContent = label
         for (const row of rows) row.classList.toggle('ifu-sidebar-hidden', state.sidebarCollapsed)
+
+        // The host's “show remaining n conversations” / “show less” controls
+        // live inside the same Workspace section as these rows. Fold them with
+        // the branch group instead of leaving an orphaned expansion control.
+        const overflowControls = new Set()
+        for (const row of rows) {
+          let scope = row.parentElement
+          while (scope && scope !== document.body && scope !== document.documentElement) {
+            for (const control of scope.querySelectorAll(':scope > [data-row-key^="overflow:"]')) {
+              overflowControls.add(control)
+            }
+            scope = scope.parentElement
+          }
+        }
+        for (const control of overflowControls) {
+          control.classList.toggle('ifu-sidebar-hidden', state.sidebarCollapsed)
+        }
 
         const branchSessionIds = ids
         const rootSessionIds = new Set(state.order
