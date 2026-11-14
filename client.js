@@ -78,6 +78,13 @@ window.__ModuleLoader__.load({
         stages: '个节点',
         collapseDock: '收起列表',
         expandDock: '展开列表',
+        sidebarGroup: '追问分支',
+        context: '上下文',
+        contextStart: '上下文起点',
+        waiting: '待提问',
+        treeNote: '当前模型上下文：{context}。兄弟分支不在其中。',
+        anchorMissing: '的原文当前不可见，可能已被折叠或尚未加载',
+        draftWait: '在下方输入浮窗中提问',
       },
       en: {
         chip: 'Ask',
@@ -126,6 +133,13 @@ window.__ModuleLoader__.load({
         stages: 'nodes',
         collapseDock: 'Collapse list',
         expandDock: 'Expand list',
+        sidebarGroup: 'Branches',
+        context: 'Context',
+        contextStart: 'Context root',
+        waiting: 'Waiting for question',
+        treeNote: 'Current model context: {context}. Sibling branches are not included.',
+        anchorMissing: 'source text is not visible; it may be folded or not loaded yet',
+        draftWait: 'Ask in the input window below',
       },
     }
 
@@ -342,21 +356,21 @@ window.__ModuleLoader__.load({
     }
 
     function pathLabel(state, branch) {
-      return `${DICT.zh.main}${pathOf(state, branch).map(item => ` › #${item.number}`).join('')}`
+      return `${app.t('main')}${pathOf(state, branch).map(item => ` › #${item.number}`).join('')}`
     }
 
     function branchBasis(state, branch) {
-      if (!branch.parentBranchId) return `${DICT.zh.basedOn} ${DICT.zh.main}`
+      if (!branch.parentBranchId) return `${app.t('basedOn')} ${app.t('main')}`
       const parent = state.branches[branch.parentBranchId]
-      return parent ? `${DICT.zh.basedOn} #${parent.number}` : `${DICT.zh.basedOn} ${DICT.zh.main}`
+      return parent ? `${app.t('basedOn')} #${parent.number}` : `${app.t('basedOn')} ${app.t('main')}`
     }
 
     function statusLabel(branch) {
-      if (branch.status === 'sending') return DICT.zh.sending
-      if (branch.status === 'running') return DICT.zh.running
-      if (branch.status === 'error') return DICT.zh.failed
-      if (branch.prompted) return DICT.zh.ready
-      return DICT.zh.draft
+      if (branch.status === 'sending') return app.t('sending')
+      if (branch.status === 'running') return app.t('running')
+      if (branch.status === 'error') return app.t('failed')
+      if (branch.prompted) return app.t('ready')
+      return app.t('draft')
     }
 
     function colorVars(color) {
@@ -422,7 +436,15 @@ window.__ModuleLoader__.load({
         refs,
         chats,
         get main() { return main },
-        t(key) { return (ctx.locale && ctx.locale.bind(NS)(key)) || DICT.zh[key] || key },
+        t(key, params) {
+          if (ctx.locale) {
+            const value = ctx.locale.bind(NS)(key, params)
+            if (value && value !== key) return value
+          }
+          const template = DICT.en[key] ?? key
+          if (!params) return template
+          return template.replace(/\{(\w+)\}/g, (match, name) => name in params ? String(params[name]) : match)
+        },
         subscribe(listener) {
           listeners.add(listener)
           return () => { listeners.delete(listener) }
@@ -902,7 +924,7 @@ window.__ModuleLoader__.load({
         const quote = ranges.map(part => part.quote).join('\n').trim()
         if (!quote) { clearChip(); return }
         if (quote.length > MAX_QUOTE) {
-          notify(DICT.zh.tooLong)
+          notify(app.t('tooLong'))
           clearChip()
           return
         }
@@ -1102,7 +1124,7 @@ window.__ModuleLoader__.load({
 
       function serialize(quote, question) {
         const body = String(quote || '').trim().split(/\r?\n/).map(line => `> ${line}`).join('\n')
-        const text = String(question || '').trim() || DICT.zh.defaultQuestion
+        const text = String(question || '').trim() || app.t('defaultQuestion')
         return `${body}\n\n${text}`
       }
 
@@ -1160,7 +1182,7 @@ window.__ModuleLoader__.load({
             await ensureReference(branch)
           }
           const reference = refs.get(branch.id)
-          if (!reference) throw new Error(DICT.zh.noSession)
+          if (!reference) throw new Error(app.t('noSession'))
           const text = serialize(branch.anchor.quote, branch.question)
           const echo = reference.binding.session.beginSubmission({
             mode: 'queue',
@@ -1175,7 +1197,7 @@ window.__ModuleLoader__.load({
           )
           if (!result.ok) {
             branch.status = 'error'
-            branch.error = result.error?.message || DICT.zh.error
+            branch.error = result.error?.message || app.t('error')
             emit()
             return false
           }
@@ -1204,7 +1226,7 @@ window.__ModuleLoader__.load({
         try {
           await ensureReference(branch)
           const reference = refs.get(branch.id)
-          if (!reference) throw new Error(DICT.zh.noSession)
+          if (!reference) throw new Error(app.t('noSession'))
           const echo = reference.binding.session.beginSubmission({
             mode: 'queue',
             text,
@@ -1218,7 +1240,7 @@ window.__ModuleLoader__.load({
           )
           if (!result.ok) {
             branch.status = 'error'
-            branch.error = result.error?.message || DICT.zh.error
+            branch.error = result.error?.message || app.t('error')
             emit()
             return false
           }
@@ -1310,7 +1332,7 @@ window.__ModuleLoader__.load({
           if (other !== header) other.remove()
         }
         if (header.nextSibling !== first) firstParent.insertBefore(header, first)
-        const label = `${state.sidebarCollapsed ? '▸' : '▾'} 追问分支 · ${rows.length}`
+        const label = `${state.sidebarCollapsed ? '▸' : '▾'} ${app.t('sidebarGroup')} · ${rows.length}`
         if (header.textContent !== label) header.textContent = label
         for (const row of rows) row.classList.toggle('ifu-sidebar-hidden', state.sidebarCollapsed)
 
@@ -1424,7 +1446,7 @@ window.__ModuleLoader__.load({
           // giving up on this attempt.
           if (navigator && attempt === 0) navigator.click()
           if (attempt < 14) setTimeout(() => scrollBranchIntoView(branch, attempt + 1), 100)
-          else notify(`#${branch.number} 的原文当前不可见，可能已被折叠或尚未加载`)
+          else notify(`#${branch.number} ${app.t('anchorMissing')}`)
           return
         }
         if (navigator && attempt === 0) navigator.click()
@@ -1852,14 +1874,14 @@ window.__ModuleLoader__.load({
       }
       return h('div', { className: 'ifu-compose' },
         h('div', { className: 'ifu-quote', title: branch.anchor.quote },
-          h('div', { className: 'ifu-quote-label' }, `${DICT.zh.quote} · ${DICT.zh.basedOn} ${branch.parentBranchId ? `#${app.state.branches[branch.parentBranchId]?.number ?? ''}` : DICT.zh.main}`),
+          h('div', { className: 'ifu-quote-label' }, `${app.t('quote')} · ${app.t('basedOn')} ${branch.parentBranchId ? `#${app.state.branches[branch.parentBranchId]?.number ?? ''}` : app.t('main')}`),
           h('div', { className: 'ifu-quote-text' }, branch.anchor.quote.length > 220 ? `${branch.anchor.quote.slice(0, 219)}…` : branch.anchor.quote),
         ),
         h('textarea', {
           ref: areaRef,
           className: 'ifu-textarea',
           value: text,
-          placeholder: DICT.zh.empty,
+          placeholder: app.t('empty'),
           rows: 3,
           onChange: event => { setText(event.target.value); app.setDraftText(branch.id, event.target.value) },
           onKeyDown: event => {
@@ -1871,14 +1893,14 @@ window.__ModuleLoader__.load({
         }),
         branch.error ? h('div', { className: 'ifu-error', role: 'alert' }, branch.error) : null,
         h('div', { className: 'ifu-compose-foot' },
-          h('span', { className: 'ifu-hint' }, DICT.zh.sendHint),
+          h('span', { className: 'ifu-hint' }, app.t('sendHint')),
           h('div', { className: 'ifu-grow' }),
           h('button', {
             type: 'button',
             className: 'ifu-send',
             disabled: sending,
             onClick: submit,
-          }, sending ? DICT.zh.sendingAction : (branch.error ? DICT.zh.retry : DICT.zh.send)),
+          }, sending ? app.t('sendingAction') : (branch.error ? app.t('retry') : app.t('send'))),
         ),
       )
     }
@@ -1887,7 +1909,7 @@ window.__ModuleLoader__.load({
       const { branch, SessionProvider, renderSlot } = props
       const reference = app.refs.get(branch.id)
       if (!reference) {
-        return h('div', { className: 'ifu-loading' }, branch.error || DICT.zh.sending)
+        return h('div', { className: 'ifu-loading' }, branch.error || app.t('sending'))
       }
       return h(SessionProvider, { session: reference },
         h('div', {
@@ -1935,18 +1957,18 @@ window.__ModuleLoader__.load({
           ...colorVars(branch.color),
         },
         role: 'dialog',
-        'aria-label': `${DICT.zh.branchN} #${branch.number} ${DICT.zh.input}`,
+        'aria-label': `${app.t('branchN')} #${branch.number} ${app.t('input')}`,
       },
         h('header', { className: 'ifu-head', onPointerDown: event => app.startPanelDrag(branch.id, event, 'input') },
           h('span', { className: 'ifu-dot' }),
           h('div', { className: 'ifu-title-wrap' },
-            h('div', { className: 'ifu-title' }, `${DICT.zh.input} · #${branch.number}`),
+            h('div', { className: 'ifu-title' }, `${app.t('input')} · #${branch.number}`),
             h('div', { className: 'ifu-sub' }, statusLabel(branch)),
           ),
           h('div', { className: 'ifu-grow' }),
-          h(IconButton, { title: DICT.zh.collapse, onClick: () => app.collapse(branch.id) }, '—'),
+          h(IconButton, { title: app.t('collapse'), onClick: () => app.collapse(branch.id) }, '—'),
           branch.sessionId ? null : h(IconButton, {
-            title: DICT.zh.deleteDraft,
+            title: app.t('deleteDraft'),
             className: 'ifu-danger',
             onClick: () => app.deleteDraft(branch.id),
           }, '⌫'),
@@ -1956,7 +1978,7 @@ window.__ModuleLoader__.load({
             ref: areaRef,
             className: 'ifu-textarea',
             value: text,
-            placeholder: DICT.zh.empty,
+            placeholder: app.t('empty'),
             rows: 3,
             onChange: event => { setText(event.target.value); app.setInputText(branch.id, event.target.value) },
             onKeyDown: event => {
@@ -1968,14 +1990,14 @@ window.__ModuleLoader__.load({
           }),
           branch.error ? h('div', { className: 'ifu-error', role: 'alert' }, branch.error) : null,
           h('div', { className: 'ifu-compose-foot' },
-            h('span', { className: 'ifu-hint' }, DICT.zh.sendHint),
+            h('span', { className: 'ifu-hint' }, app.t('sendHint')),
             h('div', { className: 'ifu-grow' }),
             h('button', {
               type: 'button',
               className: 'ifu-send',
               disabled: sending,
               onClick: submit,
-            }, sending ? DICT.zh.sendingAction : DICT.zh.send),
+            }, sending ? app.t('sendingAction') : app.t('send')),
           ),
         ),
         ...['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].map(direction => h('div', {
@@ -1991,7 +2013,7 @@ window.__ModuleLoader__.load({
       useVersion()
       if (!branch.prompted) return h(InputWindow, { key: `${branch.id}-input`, branch })
       const parent = branch.parentBranchId ? app.state.branches[branch.parentBranchId] : null
-      const basis = parent ? `${DICT.zh.basedOn} #${parent.number}` : `${DICT.zh.basedOn} ${DICT.zh.main}`
+      const basis = parent ? `${app.t('basedOn')} #${parent.number}` : `${app.t('basedOn')} ${app.t('main')}`
       const reference = app.refs.get(branch.id)
       const showThread = branch.prompted && reference && !branch.loading
       const showDraft = !branch.prompted
@@ -2012,20 +2034,20 @@ window.__ModuleLoader__.load({
             ...colorVars(branch.color),
           },
           role: 'dialog',
-          'aria-label': `${DICT.zh.branchN} #${branch.number}`,
+          'aria-label': `${app.t('branchN')} #${branch.number}`,
         },
           h('header', { className: 'ifu-head', onPointerDown: event => app.startPanelDrag(branch.id, event) },
             h('span', { className: 'ifu-dot' }),
             h('div', { className: 'ifu-title-wrap' },
-              h('div', { className: 'ifu-title' }, `${DICT.zh.branchN} #${branch.number}`),
+              h('div', { className: 'ifu-title' }, `${app.t('branchN')} #${branch.number}`),
               h('div', { className: 'ifu-sub' }, `${basis} · ${statusLabel(branch)}`),
             ),
             h('div', { className: 'ifu-grow' }),
-            h(IconButton, { title: DICT.zh.expand, onClick: () => app.promote(branch.id), disabled: !branch.prompted || !branch.sessionId }, '↗'),
-            h(IconButton, { title: DICT.zh.collapse, onClick: () => app.collapse(branch.id) }, '—'),
+            h(IconButton, { title: app.t('expand'), onClick: () => app.promote(branch.id), disabled: !branch.prompted || !branch.sessionId }, '↗'),
+            h(IconButton, { title: app.t('collapse'), onClick: () => app.collapse(branch.id) }, '—'),
             branch.sessionId || branch.prompted
-              ? h(IconButton, { title: DICT.zh.close, onClick: () => app.collapse(branch.id) }, '✕')
-              : h(IconButton, { title: DICT.zh.deleteDraft, className: 'ifu-danger', onClick: () => app.deleteDraft(branch.id) }, '⌫'),
+              ? h(IconButton, { title: app.t('close'), onClick: () => app.collapse(branch.id) }, '✕')
+              : h(IconButton, { title: app.t('deleteDraft'), className: 'ifu-danger', onClick: () => app.deleteDraft(branch.id) }, '⌫'),
           ),
           h('div', { className: 'ifu-panel-body' },
             showThread
@@ -2033,12 +2055,12 @@ window.__ModuleLoader__.load({
               : showDraft
                 ? h('div', { className: 'ifu-compose-center' },
                     h('div', { className: 'ifu-draft-quote' },
-                      h('div', { className: 'ifu-quote-label' }, `${DICT.zh.quote} · ${basis}`),
+                      h('div', { className: 'ifu-quote-label' }, `${app.t('quote')} · ${basis}`),
                       h('div', { className: 'ifu-quote-text' }, branch.anchor.quote),
-                      h('div', { className: 'ifu-draft-wait' }, '在下方输入浮窗中提问'),
+                      h('div', { className: 'ifu-draft-wait' }, app.t('draftWait')),
                     ),
                   )
-                : h('div', { className: 'ifu-loading' }, branch.error || DICT.zh.sending),
+                : h('div', { className: 'ifu-loading' }, branch.error || app.t('sending')),
           ),
           ...['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].map(direction => h('div', {
             key: direction,
@@ -2053,11 +2075,11 @@ window.__ModuleLoader__.load({
     function StageQuote(props) {
       const { branch } = props
       const parent = branch.parentBranchId ? app.state.branches[branch.parentBranchId] : null
-      const basis = parent ? `#${parent.number}` : DICT.zh.main
+      const basis = parent ? `#${parent.number}` : app.t('main')
       return h('div', { className: 'ifu-stage-quote', title: branch.anchor.quote },
         h('div', { className: 'ifu-stage-quote-label' },
           h('span', { className: 'ifu-dot' }),
-          `${DICT.zh.quote} · ${DICT.zh.basedOn} ${basis}`,
+          `${app.t('quote')} · ${app.t('basedOn')} ${basis}`,
         ),
         h('div', { className: 'ifu-stage-quote-text' }, branch.anchor.quote),
       )
@@ -2079,7 +2101,7 @@ window.__ModuleLoader__.load({
         observer.observe(host, { childList: true, subtree: true, characterData: true })
         return () => observer.disconnect()
       }, [branch.id])
-      if (!reference) return h('div', { className: 'ifu-loading' }, branch.error || DICT.zh.sending)
+      if (!reference) return h('div', { className: 'ifu-loading' }, branch.error || app.t('sending'))
       return h(SessionProvider, { session: reference },
         h('div', {
           ref: hostRef,
@@ -2106,24 +2128,24 @@ window.__ModuleLoader__.load({
         ? rows.filter(row => pathIds.has(row.branch.id))
         : rows
       const contextText = path.length > 0
-        ? `${DICT.zh.main}${path.map(branch => ` → #${branch.number}`).join('')}`
-        : DICT.zh.main
+        ? `${app.t('main')}${path.map(branch => ` → #${branch.number}`).join('')}`
+        : app.t('main')
       return h('aside', { className: 'ifu-tree', 'data-ifu-no-select': '' },
         h('div', { className: 'ifu-tree-head' },
-          h('span', null, DICT.zh.tree),
+          h('span', null, app.t('tree')),
           h('div', { className: 'ifu-tree-tabs' },
             h('button', {
               type: 'button',
               className: `ifu-tree-tab ${scope === 'path' ? 'is-active' : ''}`,
               onClick: () => setScope('path'),
-            }, '路径'),
+            }, app.t('path')),
             h('button', {
               type: 'button',
               className: `ifu-tree-tab ${scope === 'all' ? 'is-active' : ''}`,
               onClick: () => setScope('all'),
-            }, '全部'),
+            }, app.t('all')),
           ),
-          h('button', { type: 'button', className: 'ifu-icon', title: DICT.zh.close, onClick: () => app.toggleTree() }, '✕'),
+          h('button', { type: 'button', className: 'ifu-icon', title: app.t('close'), onClick: () => app.toggleTree() }, '✕'),
         ),
         h('div', { className: 'ifu-tree-list' },
           h('div', {
@@ -2138,15 +2160,15 @@ window.__ModuleLoader__.load({
             },
           },
             h('span', { className: 'ifu-dot' }),
-            h('span', { className: 'ifu-tree-root-name' }, DICT.zh.main),
+            h('span', { className: 'ifu-tree-root-name' }, app.t('main')),
             h('span', { className: 'ifu-tree-root-tag' }, 'ROOT'),
-            h('span', { className: 'ifu-tree-root-meta' }, '上下文起点'),
+            h('span', { className: 'ifu-tree-root-meta' }, app.t('contextStart')),
           ),
           visibleRows.map(({ branch, depth }) => {
             const isDraft = !branch.sessionId && !branch.prompted
             const parent = branch.parentBranchId ? state.branches[branch.parentBranchId] : null
-            const parentLabel = parent ? `${DICT.zh.main} · #${parent.number}` : DICT.zh.main
-            const title = branch.question || branch.anchor.quote || '待提问'
+            const parentLabel = parent ? `${app.t('main')} · #${parent.number}` : app.t('main')
+            const title = branch.question || branch.anchor.quote || app.t('waiting')
             const inPath = pathIds.has(branch.id)
             return h('div', {
               key: branch.id,
@@ -2172,34 +2194,34 @@ window.__ModuleLoader__.load({
                 } else if (branch.prompted && branch.sessionId) app.promote(branch.id)
                 else app.openPanel(branch.id)
               },
-              title: `${DICT.zh.switchBranch} #${branch.number}`,
+              title: `${app.t('switchBranch')} #${branch.number}`,
             },
               h('div', { className: 'ifu-tree-top' },
                 h('span', { className: 'ifu-dot' }),
                 h('span', { className: 'ifu-tree-num' }, `#${branch.number}`),
                 h('span', { className: 'ifu-tree-title' }, snippet(title, 36)),
                 branch.id === activeId
-                  ? h('span', { className: 'ifu-tree-tag' }, DICT.zh.current)
+                  ? h('span', { className: 'ifu-tree-tag' }, app.t('current'))
                   : inPath
-                    ? h('span', { className: 'ifu-tree-tag is-context' }, '上下文')
+                    ? h('span', { className: 'ifu-tree-tag is-context' }, app.t('context'))
                     : null,
                 isDraft ? h('button', {
                   type: 'button',
                   className: 'ifu-tree-delete',
-                  title: DICT.zh.deleteDraft,
+                  title: app.t('deleteDraft'),
                   onClick: (event) => { event.stopPropagation(); app.deleteDraft(branch.id) },
                 }, '⌫') : null,
               ),
               h('div', { className: 'ifu-tree-quote' }, snippet(branch.anchor.quote, 72)),
               h('div', { className: 'ifu-tree-meta' },
-                h('span', null, `${DICT.zh.basedOn} ${parentLabel}`),
+                h('span', null, `${app.t('basedOn')} ${parentLabel}`),
                 h('span', null, statusLabel(branch)),
               ),
             )
           }),
         ),
         h('div', { className: 'ifu-tree-note' },
-          `当前模型上下文：${contextText}。兄弟分支不在其中。`,
+          app.t('treeNote', { context: contextText }),
         ),
       )
     }
@@ -2223,23 +2245,23 @@ window.__ModuleLoader__.load({
             type: 'button',
             className: 'ifu-stage-back',
             onClick: () => index <= 0 ? app.stageClose() : app.stageGo(-1),
-            title: index <= 0 ? DICT.zh.main : DICT.zh.back,
-          }, `← ${DICT.zh.back}`),
+            title: index <= 0 ? app.t('main') : app.t('back'),
+          }, `← ${app.t('back')}`),
           h('span', { className: 'ifu-stage-count' }, `${index + 1}/${total}`),
           h('button', {
             type: 'button',
             className: 'ifu-stage-back',
             disabled: index >= total - 1,
             onClick: () => app.stageGo(1),
-          }, DICT.zh.forward, ' →'),
+          }, app.t('forward'), ' →'),
           h('span', { className: 'ifu-stage-divider' }),
           h('div', { className: 'ifu-crumbs' },
             h('button', {
               type: 'button',
               className: 'ifu-crumb-btn',
               onClick: () => app.stageClose(),
-              title: DICT.zh.main,
-            }, DICT.zh.main),
+              title: app.t('main'),
+            }, app.t('main')),
             ...path.flatMap(item => [
               h('span', { key: `sep-${item.id}`, className: 'ifu-crumb-sep' }, '›'),
               h('button', {
@@ -2250,23 +2272,23 @@ window.__ModuleLoader__.load({
                   if (item.id === branch.id) return
                   app.promote(item.id)
                 },
-                title: `${DICT.zh.switchBranch} #${item.number}`,
+                title: `${app.t('switchBranch')} #${item.number}`,
               }, `#${item.number}`),
             ]),
           ),
-          h('span', { className: 'ifu-context-chip' }, `上下文 · ${path.length} ${DICT.zh.stages}`),
+          h('span', { className: 'ifu-context-chip' }, `${app.t('context')} · ${path.length} ${app.t('stages')}`),
           h('div', { className: 'ifu-grow' }),
           h('span', { className: 'ifu-stage-status' }, statusLabel(branch)),
-          h('button', { type: 'button', className: 'ifu-stage-action', onClick: () => app.toggleTree() }, '▤ ', DICT.zh.tree),
-          h('button', { type: 'button', className: 'ifu-stage-action', onClick: () => app.stageRestore() }, '↘ ', DICT.zh.restore),
-          h('button', { type: 'button', className: 'ifu-stage-action', onClick: () => app.stageClose() }, '✕ ', DICT.zh.close),
+          h('button', { type: 'button', className: 'ifu-stage-action', onClick: () => app.toggleTree() }, '▤ ', app.t('tree')),
+          h('button', { type: 'button', className: 'ifu-stage-action', onClick: () => app.stageRestore() }, '↘ ', app.t('restore')),
+          h('button', { type: 'button', className: 'ifu-stage-action', onClick: () => app.stageClose() }, '✕ ', app.t('close')),
         ),
-        h('div', { className: 'ifu-stage-tip' }, DICT.zh.stageHint),
+        h('div', { className: 'ifu-stage-tip' }, app.t('stageHint')),
         h('div', { className: 'ifu-stage-body' },
           h(StageQuote, { branch }),
           reference && !branch.loading
             ? h(StageThread, { key: branch.id, branch, SessionProvider, renderSlot })
-            : h('div', { className: 'ifu-loading' }, branch.error || DICT.zh.sending),
+            : h('div', { className: 'ifu-loading' }, branch.error || app.t('sending')),
         ),
         h(BranchTree),
       )
@@ -2403,7 +2425,7 @@ window.__ModuleLoader__.load({
           className: 'ifu-dock-collapsed',
           'data-ifu-dock': '',
           onClick: () => app.toggleDock(),
-        }, `◉ ${DICT.zh.dock} · ${branches.length}`)
+        }, `◉ ${app.t('dock')} · ${branches.length}`)
       }
       const dockStyle = state.dock
         ? {
@@ -2417,11 +2439,11 @@ window.__ModuleLoader__.load({
         : {}
       return h('aside', { className: 'ifu-dock', 'data-ifu-dock': '', style: dockStyle },
         h('div', { className: 'ifu-dock-head', onPointerDown: event => app.startDockDrag(event) },
-          h('span', null, `${DICT.zh.dock} · ${branches.length}`),
+          h('span', null, `${app.t('dock')} · ${branches.length}`),
           h('button', {
             type: 'button',
             className: 'ifu-dock-toggle',
-            title: DICT.zh.collapseDock,
+            title: app.t('collapseDock'),
             onClick: () => app.closeDock(),
           }, '—'),
         ),
@@ -2440,7 +2462,7 @@ window.__ModuleLoader__.load({
                 event.preventDefault()
                 app.revealBranch(branch.id)
               },
-              title: `${DICT.zh.switchBranch}: #${branch.number}`,
+              title: `${app.t('switchBranch')}: #${branch.number}`,
             },
               h('span', { className: 'ifu-dot', style: colorVars(branch.color) }),
               h('span', { className: 'ifu-dock-num' }, `#${branch.number}`),
@@ -2449,7 +2471,7 @@ window.__ModuleLoader__.load({
               isDraft ? h('button', {
                 type: 'button',
                 className: 'ifu-dock-delete',
-                title: DICT.zh.deleteDraft,
+                title: app.t('deleteDraft'),
                 onClick: (event) => { event.stopPropagation(); app.deleteDraft(branch.id) },
               }, '⌫') : null,
             )
@@ -2471,14 +2493,14 @@ window.__ModuleLoader__.load({
         className: 'ifu-chip',
         'data-ifu-chip': '',
         style: { left: `${chip.x}px`, top: `${chip.y}px` },
-        title: DICT.zh.chipHint,
+        title: app.t('chipHint'),
         onMouseDown: event => event.preventDefault(),
         onClick: () => {
           const x = clamp(chip.x - 120, 12, window.innerWidth - PANEL_WIDTH - 12)
           const y = clamp(chip.y + 38, 12, window.innerHeight - 320)
           app.openDraft(chip.anchor, x, y)
         },
-      }, '✦ ', DICT.zh.chip)
+      }, '✦ ', app.t('chip'))
     }
 
     function Notice() {
@@ -2707,6 +2729,7 @@ window.__ModuleLoader__.load({
         app = createApp(ctx)
         app.load()
         ctx.effect(() => ctx.locale.register(NS, { zh: DICT.zh, en: DICT.en }), 'inline-followup: locale')
+        ctx.effect(() => ctx.on('locale/change', () => app.emit()), 'inline-followup: locale-change')
         ctx.effect(() => app.install(), 'inline-followup: lifetime')
         ctx.slots.inject('shell.overlay', () => ctx.slots.register({
           name: 'shell.overlay',
