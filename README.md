@@ -96,7 +96,7 @@ dsh plugin --profile web add /absolute/path/to/dsh-ask-from-text
 
 每个追问都会作为真实 Session 出现在左侧栏。
 
-它们会被归入 `追问分支` 分组；点分组标题即可收起或展开，不影响主对话和其他会话。主对话行会固定显示在分支分组之上，即使某个分支的最近活跃时间更靠后。
+它们会被归入对应主对话的 `追问分支` 分组；点分组标题即可收起或展开，不影响主对话和其他会话。分支编号按主对话独立，每个主对话都从 `#1` 开始。主对话行会固定显示在分支分组之上，即使某个分支的最近活跃时间更靠后。
 
 ## 使用须知
 
@@ -218,7 +218,7 @@ A sent follow-up is a real Session and cannot be deleted by the plugin. Archive 
 
 Every follow-up appears as a real Session in the left sidebar.
 
-These sessions are grouped under a `追问分支` header. Click the header to collapse or expand the group without affecting the main chat or other sessions. The main-chat row stays above the branch group even when a branch was used more recently.
+These sessions are grouped under a `追问分支` header for their own root conversation. Click the header to collapse or expand the group without affecting the main chat or other sessions. Branch numbers are scoped to each root conversation, so every main chat starts again at `#1`. The main-chat row stays above the branch group even when a branch was used more recently.
 
 ### Notes
 

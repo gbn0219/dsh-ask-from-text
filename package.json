@@ -1,6 +1,6 @@
 {
   "name": "dsh-ask-from-text",
-  "version": "0.1.24",
+  "version": "0.1.25",
   "type": "module",
   "description": "Ask a follow-up from selected text in a DeepSeek Harness answer, in a real Session branch with a tree of context.",
   "exports": {

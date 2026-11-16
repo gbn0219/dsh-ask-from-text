@@ -733,7 +733,6 @@ window.__ModuleLoader__.load({
         mainSessionId: null,
         branches: {},
         order: [],
-        nextNumber: 1,
         chip: null,
         stageOpen: false,
         stageStack: [],
@@ -864,7 +863,6 @@ window.__ModuleLoader__.load({
             version: 1,
             branches,
             order: state.order,
-            nextNumber: state.nextNumber,
             dock: state.dock,
             sidebarCollapsedRoots: state.sidebarCollapsedRoots,
           }))
@@ -879,7 +877,7 @@ window.__ModuleLoader__.load({
           if (!raw) return
           const data = JSON.parse(raw)
           if (!data || data.version !== 1 || !data.branches || !Array.isArray(data.order)) return
-          let maxNumber = 0
+          const loaded = []
           for (const id of data.order) {
             const branch = data.branches[id]
             if (!branch || !branch.id || !branch.anchor || !branch.anchor.sessionId) continue
@@ -898,9 +896,19 @@ window.__ModuleLoader__.load({
             branch.inputText = String(branch.inputText || '')
             state.branches[id] = branch
             state.order.push(id)
-            maxNumber = Math.max(maxNumber, Number(branch.number) || 0)
+            loaded.push(branch)
           }
-          state.nextNumber = Math.max(Number(data.nextNumber) || 1, maxNumber + 1)
+          // Branch numbers are scoped to the root conversation. Existing data
+          // used a global sequence, so compact it per root on load.
+          const rootCounters = new Map()
+          for (const branch of loaded) {
+            const rootId = branch.rootSessionId
+            if (!rootId) continue
+            const number = (rootCounters.get(rootId) || 0) + 1
+            rootCounters.set(rootId, number)
+            branch.number = number
+            branch.color = (number - 1) % COLORS.length
+          }
           if (data.dock && Number.isFinite(data.dock.x) && Number.isFinite(data.dock.y)) state.dock = { x: data.dock.x, y: data.dock.y, w: Number(data.dock.w) || 286, h: Number(data.dock.h) || 260 }
           state.sidebarCollapsedRoots = data.sidebarCollapsedRoots && typeof data.sidebarCollapsedRoots === 'object'
             ? { ...data.sidebarCollapsedRoots }
@@ -1417,15 +1425,19 @@ window.__ModuleLoader__.load({
       // branch actions
       // -------------------------------------------------------------------
 
-      function nextNumber() {
-        const number = state.nextNumber
-        state.nextNumber += 1
-        return number
+      function nextBranchNumber(rootSessionId) {
+        let max = 0
+        for (const id of state.order) {
+          const branch = state.branches[id]
+          if (!branch || branch.rootSessionId !== rootSessionId) continue
+          max = Math.max(max, Number(branch.number) || 0)
+        }
+        return max + 1
       }
 
       function openDraft(anchor, x, y) {
-        const number = nextNumber()
-        const id = `ifu-${number}-${Date.now()}`
+        const number = nextBranchNumber(anchor.rootSessionId)
+        const id = `ifu-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
         const branch = {
           id,
           number,
