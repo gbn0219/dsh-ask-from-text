@@ -4,6 +4,17 @@ All notable changes to `dsh-ask-from-text` are documented here. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.1.23] - 2026-11-16
+
+### Fixed
+
+- Group branch rows separately for each root conversation in the left sidebar,
+  using a stable custom row instead of moving React-managed Session rows. This
+  prevents duplicate rows after collapse/expand and keeps multiple main
+  conversations independent.
+- Clicking a sidebar branch switches to its root conversation first, then opens
+  the branch and scrolls to the source quote.
+
 ## [0.1.22] - 2026-11-13
 
 ### Fixed
@@ -78,6 +89,17 @@ project follows [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - README screenshots now use absolute CDN URLs so they render on the npm package page.
+
+## [0.1.23] - 2026-11-16
+
+### Fixed
+
+- Group branch rows separately for each root conversation in the left sidebar,
+  using a stable custom row instead of moving React-managed Session rows. This
+  prevents duplicate rows after collapse/expand and keeps multiple main
+  conversations independent.
+- Clicking a sidebar branch switches to its root conversation first, then opens
+  the branch and scrolls to the source quote.
 
 ## [0.1.22] - 2026-11-13
 
@@ -245,6 +267,7 @@ project follows [Semantic Versioning](https://semver.org/).
 [0.1.20]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.20
 [0.1.21]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.21
 [0.1.22]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.22
+[0.1.23]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.23
 [0.1.13]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.13
 [0.1.14]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.14
 [0.1.15]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.15
@@ -255,3 +278,4 @@ project follows [Semantic Versioning](https://semver.org/).
 [0.1.20]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.20
 [0.1.21]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.21
 [0.1.22]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.22
+[0.1.23]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.23

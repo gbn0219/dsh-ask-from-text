@@ -738,7 +738,7 @@ window.__ModuleLoader__.load({
         stageOpen: false,
         stageStack: [],
         stageIndex: -1,
-        sidebarCollapsed: false,
+        sidebarCollapsedRoots: {},
         notice: null,
         dockOpen: true,
         dock: null,
@@ -866,7 +866,7 @@ window.__ModuleLoader__.load({
             order: state.order,
             nextNumber: state.nextNumber,
             dock: state.dock,
-            sidebarCollapsed: state.sidebarCollapsed,
+            sidebarCollapsedRoots: state.sidebarCollapsedRoots,
           }))
         } catch (_error) {
           // localStorage may be unavailable; the session logs still exist.
@@ -902,7 +902,9 @@ window.__ModuleLoader__.load({
           }
           state.nextNumber = Math.max(Number(data.nextNumber) || 1, maxNumber + 1)
           if (data.dock && Number.isFinite(data.dock.x) && Number.isFinite(data.dock.y)) state.dock = { x: data.dock.x, y: data.dock.y, w: Number(data.dock.w) || 286, h: Number(data.dock.h) || 260 }
-          state.sidebarCollapsed = Boolean(data.sidebarCollapsed)
+          state.sidebarCollapsedRoots = data.sidebarCollapsedRoots && typeof data.sidebarCollapsedRoots === 'object'
+            ? { ...data.sidebarCollapsedRoots }
+            : {}
         } catch (_error) {
           // Ignore a corrupt or incompatible tree; sessions remain available.
         }
@@ -1355,7 +1357,8 @@ window.__ModuleLoader__.load({
               return target !== null && target !== undefined
                 && (target.closest('[data-ifu-badge-layer]') !== null
                   || target.closest('.ifu-hl') !== null
-                  || target.closest('[data-ifu-sidebar-group]') !== null)
+                  || target.closest('[data-ifu-sidebar-group]') !== null
+                  || target.closest('[data-ifu-sidebar-section]') !== null)
             })
             if (!own) scheduleProject()
           })
@@ -1390,7 +1393,15 @@ window.__ModuleLoader__.load({
           style.remove()
           for (const layer of document.querySelectorAll('[data-ifu-badge-layer]')) layer.remove()
           for (const header of document.querySelectorAll('[data-ifu-sidebar-group]')) header.remove()
+          for (const section of document.querySelectorAll('[data-ifu-sidebar-section]')) {
+            const parent = section.parentElement
+            if (parent) {
+              while (section.firstChild) parent.insertBefore(section.firstChild, section)
+            }
+            section.remove()
+          }
           for (const row of document.querySelectorAll('.ifu-sidebar-hidden')) row.classList.remove('ifu-sidebar-hidden')
+          for (const control of document.querySelectorAll('[data-ifu-overflow-hidden]')) control.removeAttribute('data-ifu-overflow-hidden')
           for (let i = 0; i < COLORS.length; i += 1) {
             if (typeof CSS !== 'undefined' && CSS.highlights) CSS.highlights.delete(`ifu-c${i}`)
           }
@@ -1604,124 +1615,153 @@ window.__ModuleLoader__.load({
         emit()
       }
 
-      function toggleSidebarBranches() {
-        state.sidebarCollapsed = !state.sidebarCollapsed
+      function toggleSidebarBranches(rootSessionId) {
+        if (!rootSessionId) return
+        if (state.sidebarCollapsedRoots[rootSessionId]) delete state.sidebarCollapsedRoots[rootSessionId]
+        else state.sidebarCollapsedRoots[rootSessionId] = true
         renderSidebarBranches()
         emit()
       }
 
       function renderSidebarBranches() {
         if (!installed) return
-        const ids = new Set(state.order
-          .map(id => state.branches[id]?.sessionId)
-          .filter(Boolean))
-        const rows = []
-        for (const id of ids) {
+        // Remove any older native-row section left by a previous hot-reloaded
+        // build. Current custom sections only hold cloned rows and a header.
+        for (const section of document.querySelectorAll('[data-ifu-sidebar-section]')) {
+          if (!section.querySelector('[data-row-key^="session:"]')) continue
+          const parent = section.parentElement
+          if (parent) {
+            while (section.firstChild) parent.insertBefore(section.firstChild, section)
+          }
+          section.remove()
+        }
+        const groups = new Map()
+        for (const id of state.order) {
+          const branch = state.branches[id]
+          if (!branch || !branch.sessionId || !branch.rootSessionId) continue
+          let group = groups.get(branch.rootSessionId)
+          if (!group) {
+            group = { rootSessionId: branch.rootSessionId, branches: [] }
+            groups.set(branch.rootSessionId, group)
+          }
+          group.branches.push(branch)
+        }
+        const compare = (a, b) => a === b ? 0
+          : (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1
+        const visibleRow = (sessionId) => Array.from(document.querySelectorAll(`[data-row-key="session:${cssEscape(sessionId)}"]`))
+          .find(row => !row.closest('[data-ifu-root]') && row.getClientRects().length > 0) || null
+        const rootGroups = []
+        for (const group of groups.values()) {
+          const rootRow = visibleRow(group.rootSessionId)
+          if (!rootRow) continue
+          rootGroups.push({ ...group, rootRow })
+        }
+        rootGroups.sort((a, b) => compare(a.rootRow, b.rootRow))
+        const usedSections = new Set()
+        const usedHeaders = new Set()
+        const containers = new Set()
+        for (const group of rootGroups) {
+          const rootParent = group.rootRow.parentElement
+          if (!rootParent) continue
+          const siblingSessions = rootParent.querySelectorAll('[data-row-key^="session:"]').length
+          const container = siblingSessions <= 1 && rootParent.parentElement
+            ? rootParent.parentElement
+            : rootParent
+          let rootChild = group.rootRow
+          while (rootChild && rootChild.parentElement !== container) rootChild = rootChild.parentElement
+          if (!rootChild || !container || container === document.body) continue
+          containers.add(container)
+          const rootId = cssEscape(group.rootSessionId)
+          let section = container.querySelector(`:scope > [data-ifu-sidebar-section][data-ifu-sidebar-section-root="${rootId}"]`)
+          if (!section) {
+            section = document.createElement('div')
+            section.className = 'ifu-sidebar-section'
+            section.setAttribute('data-ifu-sidebar-section', '')
+            section.setAttribute('data-ifu-sidebar-section-root', group.rootSessionId)
+            container.insertBefore(section, rootChild.nextSibling)
+          } else if (section.previousSibling !== rootChild) {
+            container.insertBefore(section, rootChild.nextSibling)
+          }
+          usedSections.add(section)
+          let header = section.querySelector(':scope > [data-ifu-sidebar-group]')
+          if (!header) {
+            header = document.createElement('button')
+            header.type = 'button'
+            header.className = 'ifu-sidebar-group'
+            header.setAttribute('data-ifu-sidebar-group', '')
+            header.setAttribute('data-ifu-sidebar-root', group.rootSessionId)
+            header.addEventListener('click', (event) => {
+              event.preventDefault()
+              event.stopPropagation()
+              toggleSidebarBranches(header.getAttribute('data-ifu-sidebar-root'))
+            })
+          }
+          const collapsed = Boolean(state.sidebarCollapsedRoots[group.rootSessionId])
+          const label = `${collapsed ? '▸' : '▾'} ${app.t('sidebarGroup')} · ${group.branches.length}`
+          if (header.textContent !== label) header.textContent = label
+          usedHeaders.add(header)
+          const items = []
+          for (const branch of group.branches) {
+            // Use the same custom row for every branch. Earlier versions cloned
+            // a rendered native row when one happened to be mounted, which made
+            // some rows look native and some look custom in the same group.
+            const item = document.createElement('div')
+            item.className = 'ifu-sidebar-clone ifu-sidebar-clone-fallback'
+            item.setAttribute('role', 'button')
+            item.style.setProperty('--ifu-c', `var(--ifu-c${branch.color % COLORS.length})`)
+            const dot = document.createElement('span')
+            dot.className = 'ifu-dot'
+            const num = document.createElement('span')
+            num.className = 'ifu-sidebar-clone-num'
+            num.textContent = `#${branch.number}`
+            const title = document.createElement('span')
+            title.className = 'ifu-sidebar-clone-title'
+            title.textContent = branch.question || branch.anchor.quote
+            const status = document.createElement('span')
+            status.className = 'ifu-sidebar-clone-status'
+            status.textContent = statusLabel(branch)
+            item.append(dot, num, title, status)
+            item.addEventListener('click', (event) => {
+              event.preventDefault()
+              event.stopPropagation()
+              const reveal = () => app.revealBranch(branch.id)
+              const rootRow = state.mainSessionId === group.rootSessionId ? null : visibleRow(group.rootSessionId)
+              if (rootRow) {
+                // A branch can belong to another main conversation. Open that
+                // root first, then reveal the branch and scroll to its source.
+                rootRow.click()
+                setTimeout(reveal, 350)
+              } else {
+                reveal()
+              }
+            })
+            item.classList.toggle('ifu-sidebar-hidden', collapsed)
+            items.push(item)
+          }
+          section.replaceChildren(header, ...items)
+        }
+        for (const header of document.querySelectorAll('[data-ifu-sidebar-group]')) {
+          if (!usedHeaders.has(header)) header.remove()
+        }
+        for (const section of document.querySelectorAll('[data-ifu-sidebar-section]')) {
+          if (!usedSections.has(section)) section.remove()
+        }
+        const allBranchIds = new Set()
+        for (const group of groups.values()) {
+          for (const branch of group.branches) allBranchIds.add(branch.sessionId)
+        }
+        for (const id of allBranchIds) {
           for (const row of document.querySelectorAll(`[data-row-key="session:${cssEscape(id)}"]`)) {
-            if (row.closest('[data-ifu-root]')) continue
-            // Keep rows hidden by our own collapsed state in the group so the
-            // header stays clickable; skip rows hidden inside a folded
-            // Workspace or a stale search tree.
-            if (row.getClientRects().length === 0 && !row.classList.contains('ifu-sidebar-hidden')) continue
-            rows.push(row)
+            if (!row.closest('[data-ifu-root]')) row.classList.add('ifu-sidebar-hidden')
           }
         }
-        rows.sort((a, b) => a === b ? 0
-          : (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1)
-        if (rows.length === 0) {
-          for (const header of document.querySelectorAll('[data-ifu-sidebar-group]')) header.remove()
-          for (const row of document.querySelectorAll('.ifu-sidebar-hidden')) row.classList.remove('ifu-sidebar-hidden')
-          return
-        }
-        const first = rows[0]
-        const firstParent = first.parentElement
-        if (!firstParent) return
-        let header = firstParent.querySelector(':scope > [data-ifu-sidebar-group]')
-        if (!header) {
-          header = document.createElement('button')
-          header.type = 'button'
-          header.className = 'ifu-sidebar-group'
-          header.setAttribute('data-ifu-sidebar-group', '')
-          header.addEventListener('click', (event) => {
-            event.preventDefault()
-            event.stopPropagation()
-            toggleSidebarBranches()
-          })
-        }
-        // Keep one shared header, inside the first branch wrapper. Putting it
-        // at the animated tree root would be clipped or ignored by the row
-        // animation layer; a wrapper child participates in the same layout as
-        // the original per-row header did.
-        for (const other of document.querySelectorAll('[data-ifu-sidebar-group]')) {
-          if (other !== header) other.remove()
-        }
-        if (header.nextSibling !== first) firstParent.insertBefore(header, first)
-        const label = `${state.sidebarCollapsed ? '▸' : '▾'} ${app.t('sidebarGroup')} · ${ids.size}`
-        if (header.textContent !== label) header.textContent = label
-        for (const row of rows) row.classList.toggle('ifu-sidebar-hidden', state.sidebarCollapsed)
-
-        // The host's “show remaining n conversations” / “show less” controls
-        // live inside the same Workspace section as these rows. Fold them with
-        // the branch group instead of leaving an orphaned expansion control.
-        const overflowControls = new Set()
-        for (const row of rows) {
-          let scope = row.parentElement
-          while (scope && scope !== document.body && scope !== document.documentElement) {
-            for (const control of scope.querySelectorAll(':scope > [data-row-key^="overflow:"]')) {
-              overflowControls.add(control)
-            }
-            scope = scope.parentElement
+        for (const control of document.querySelectorAll('[data-row-key^="overflow:"]')) {
+          const parent = control.parentElement
+          if (parent && Array.from(usedSections).some(section => parent.contains(section))) {
+            control.setAttribute('data-ifu-overflow-hidden', '')
+          } else {
+            control.removeAttribute('data-ifu-overflow-hidden')
           }
-        }
-        for (const control of overflowControls) {
-          control.classList.toggle('ifu-sidebar-hidden', state.sidebarCollapsed)
-        }
-
-        const branchSessionIds = ids
-        const rootSessionIds = new Set(state.order
-          .map(id => state.branches[id]?.rootSessionId)
-          .filter(Boolean))
-        const sessionIdOf = (row) => {
-          const key = row.getAttribute('data-row-key') || ''
-          return key.startsWith('session:') ? key.slice('session:'.length) : null
-        }
-        const selectedRow = Array.from(document.querySelectorAll('[data-row-key^="session:"][aria-selected="true"]'))
-          .find(row => row.getClientRects().length > 0) || null
-        // A branch row can be selected too (opening it as the main view). Only a
-        // root/main Session may be pinned above the branch group; otherwise
-        // clicking a branch would make that branch jump above its siblings.
-        const selectedMain = selectedRow && rootSessionIds.has(sessionIdOf(selectedRow))
-          ? selectedRow
-          : null
-        let mainId = state.mainSessionId
-        if (mainId && branchSessionIds.has(mainId)) {
-          mainId = branchBySession(mainId)?.rootSessionId || null
-        }
-        const mainRow = selectedMain || (mainId
-          ? Array.from(document.querySelectorAll(`[data-row-key="session:${cssEscape(mainId)}"]`))
-            .find(row => row.getClientRects().length > 0) || null
-          : null)
-        if (!mainRow) return
-        if (mainRow.parentElement === firstParent) {
-          if (mainRow !== header
-            && (mainRow.compareDocumentPosition(header) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
-            firstParent.insertBefore(mainRow, header)
-          }
-          return
-        }
-        let common = mainRow.parentElement
-        while (common && !common.contains(firstParent)) common = common.parentElement
-        if (!common || common === document.body || common === document.documentElement) return
-        const directChild = (node) => {
-          let element = node
-          while (element && element.parentElement !== common) element = element.parentElement
-          return element && element.parentElement === common ? element : null
-        }
-        const mainChild = directChild(mainRow)
-        const branchChild = directChild(firstParent)
-        if (mainChild && branchChild && mainChild !== branchChild
-          && (mainChild.compareDocumentPosition(branchChild) & Node.DOCUMENT_POSITION_FOLLOWING) === 0) {
-          common.insertBefore(mainChild, branchChild)
         }
       }
 
@@ -2930,9 +2970,19 @@ window.__ModuleLoader__.load({
       body[data-ds-dark-theme] ::highlight(ifu-c6){ background-color:rgba(194,155,232,.24); text-decoration-color:#C29BE8; }
       body[data-ds-dark-theme] ::highlight(ifu-c7){ background-color:rgba(169,196,106,.24); text-decoration-color:#A9C46A; }
       ::highlight(ifu-c0), ::highlight(ifu-c1), ::highlight(ifu-c2), ::highlight(ifu-c3), ::highlight(ifu-c4), ::highlight(ifu-c5), ::highlight(ifu-c6), ::highlight(ifu-c7) { text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:3px; }
-      .ifu-sidebar-group { display:flex; align-items:center; width:100%; box-sizing:border-box; padding:5px 8px; border:0; background:transparent; color:var(--dsw-alias-label-tertiary,#61666b); font:9.5px/1.4 var(--dsw-font-family-text,sans-serif); cursor:pointer; text-align:left; }
+      .ifu-sidebar-section { display:flex; flex-direction:column; min-width:0; }
+      .ifu-sidebar-section > * + * { margin-top:2px; }
+      .ifu-sidebar-section .ifu-sidebar-clone { width:100%; box-sizing:border-box; cursor:pointer; }
+      .ifu-sidebar-section .ifu-sidebar-clone button { display:none !important; }
+      .ifu-sidebar-clone-fallback { display:flex; align-items:center; gap:6px; min-height:28px; padding:6px 8px; border-radius:7px; color:var(--dsw-alias-label-primary,#0f1115); font-size:10px; }
+      .ifu-sidebar-clone-fallback:hover { background:var(--dsw-alias-interactive-bg-hover,rgba(0,0,0,.06)); }
+      .ifu-sidebar-clone-num { flex:0 0 auto; font:600 9px/1 var(--dsw-font-family-code,monospace); color:var(--dsw-alias-label-secondary,#3c4043); }
+      .ifu-sidebar-clone-title { min-width:0; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .ifu-sidebar-clone-status { flex:0 0 auto; font-size:8px; color:var(--dsw-alias-label-caption,#979da6); }
+      .ifu-sidebar-group { display:flex; align-items:center; width:100%; min-width:100%; box-sizing:border-box; padding:5px 8px; border:0; background:transparent; color:var(--dsw-alias-label-tertiary,#61666b); font:9.5px/1.4 var(--dsw-font-family-text,sans-serif); cursor:pointer; text-align:left; }
       .ifu-sidebar-group:hover { background:var(--dsw-alias-interactive-bg-hover,rgba(0,0,0,.06)); }
       .ifu-sidebar-hidden { display:none !important; }
+      [data-ifu-overflow-hidden] { display:none !important; }
       .ifu-root { position:fixed; inset:0; pointer-events:none; z-index:60; }
       .ifu-hl { position:fixed; z-index:65; pointer-events:none; border-radius:2px; background:var(--ifu-h); border-bottom:2px solid var(--ifu-c); }
       .ifu-hl-thread { z-index:360; }
