@@ -4,6 +4,14 @@ All notable changes to `dsh-ask-from-text` are documented here. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.1.24] - 2026-11-16
+
+### Fixed
+
+- Enforce exactly one sidebar section per root conversation and deduplicate
+  branch rows, preventing the same list from appearing twice while DSH
+  replaces a row wrapper.
+
 ## [0.1.23] - 2026-11-16
 
 ### Fixed
@@ -89,6 +97,14 @@ project follows [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - README screenshots now use absolute CDN URLs so they render on the npm package page.
+
+## [0.1.24] - 2026-11-16
+
+### Fixed
+
+- Enforce exactly one sidebar section per root conversation and deduplicate
+  branch rows, preventing the same list from appearing twice while DSH
+  replaces a row wrapper.
 
 ## [0.1.23] - 2026-11-16
 
@@ -268,6 +284,7 @@ project follows [Semantic Versioning](https://semver.org/).
 [0.1.21]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.21
 [0.1.22]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.22
 [0.1.23]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.23
+[0.1.24]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.24
 [0.1.13]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.13
 [0.1.14]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.14
 [0.1.15]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.15
@@ -279,3 +296,4 @@ project follows [Semantic Versioning](https://semver.org/).
 [0.1.21]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.21
 [0.1.22]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.22
 [0.1.23]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.23
+[0.1.24]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.24

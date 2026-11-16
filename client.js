@@ -1672,14 +1672,21 @@ window.__ModuleLoader__.load({
           if (!rootChild || !container || container === document.body) continue
           containers.add(container)
           const rootId = cssEscape(group.rootSessionId)
-          let section = container.querySelector(`:scope > [data-ifu-sidebar-section][data-ifu-sidebar-section-root="${rootId}"]`)
+          // Keep exactly one section per root. React can briefly leave an old
+          // section behind while it replaces a row wrapper; without this the
+          // same branch list can render twice.
+          const matchingSections = Array.from(document.querySelectorAll(`[data-ifu-sidebar-section][data-ifu-sidebar-section-root="${rootId}"]`))
+          let section = matchingSections.find(candidate => candidate.parentElement === container) || matchingSections[0] || null
+          for (const candidate of matchingSections) {
+            if (candidate !== section) candidate.remove()
+          }
           if (!section) {
             section = document.createElement('div')
             section.className = 'ifu-sidebar-section'
             section.setAttribute('data-ifu-sidebar-section', '')
             section.setAttribute('data-ifu-sidebar-section-root', group.rootSessionId)
             container.insertBefore(section, rootChild.nextSibling)
-          } else if (section.previousSibling !== rootChild) {
+          } else if (section.parentElement !== container || section.previousSibling !== rootChild) {
             container.insertBefore(section, rootChild.nextSibling)
           }
           usedSections.add(section)
@@ -1697,11 +1704,12 @@ window.__ModuleLoader__.load({
             })
           }
           const collapsed = Boolean(state.sidebarCollapsedRoots[group.rootSessionId])
-          const label = `${collapsed ? '▸' : '▾'} ${app.t('sidebarGroup')} · ${group.branches.length}`
+          const branches = Array.from(new Map(group.branches.map(branch => [branch.id, branch])).values())
+          const label = `${collapsed ? '▸' : '▾'} ${app.t('sidebarGroup')} · ${branches.length}`
           if (header.textContent !== label) header.textContent = label
           usedHeaders.add(header)
           const items = []
-          for (const branch of group.branches) {
+          for (const branch of branches) {
             // Use the same custom row for every branch. Earlier versions cloned
             // a rendered native row when one happened to be mounted, which made
             // some rows look native and some look custom in the same group.
