@@ -773,6 +773,14 @@ window.__ModuleLoader__.load({
           return () => { listeners.delete(listener) }
         },
         getVersion() { return state.version },
+        panelActive() {
+          const info = ctx.layout?.panelInfo?.getSnapshot?.()
+          if (info && info.activePanelId !== null) return true
+          // A plugin/settings page can be selected while a previous session is
+          // still in the store. The transcript is gone in that case, so hide
+          // every conversation-scoped overlay even if panelInfo is unavailable.
+          return !document.querySelector('[data-conversation-scroll]')
+        },
         emit,
         load,
         persist,
@@ -2912,6 +2920,7 @@ window.__ModuleLoader__.load({
 
     function FollowupLayer(props) {
       useVersion()
+      const panelActive = app.panelActive()
       const state = app.state
       const branches = state.order.map(id => state.branches[id]).filter(Boolean)
       const panels = branches.filter(branch => branch.mode === 'panel')
@@ -2919,8 +2928,9 @@ window.__ModuleLoader__.load({
         ? state.branches[state.stageStack[state.stageIndex]]
         : null
       useEffect(() => {
-        app.scheduleProject()
+        if (!panelActive) app.scheduleProject()
       })
+      if (panelActive) return null
       return h('div', { className: 'ifu-root', 'data-ifu-root': '' },
         stageBranch
           ? h(Stage, {
@@ -3135,12 +3145,18 @@ window.__ModuleLoader__.load({
 
     return {
       name: 'inline-followup',
-      inject: ['slots', 'locale', 'sessions'],
+      inject: ['slots', 'locale', 'sessions', 'layout'],
       apply(ctx) {
         app = createApp(ctx)
         app.load()
         ctx.effect(() => ctx.locale.register(NS, DICT), 'inline-followup: locale')
         ctx.effect(() => ctx.on('locale/change', () => app.emit()), 'inline-followup: locale-change')
+        ctx.effect(() => {
+          const info = ctx.layout?.panelInfo
+          if (!info || typeof info.subscribe !== 'function') return () => {}
+          const dispose = info.subscribe(() => app.emit())
+          return () => { if (typeof dispose === 'function') dispose() }
+        }, 'inline-followup: panel-info')
         ctx.effect(() => app.install(), 'inline-followup: lifetime')
         ctx.slots.inject('shell.overlay', () => ctx.slots.register({
           name: 'shell.overlay',

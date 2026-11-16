@@ -4,6 +4,14 @@ All notable changes to `dsh-ask-from-text` are documented here. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.1.26] - 2026-11-16
+
+### Fixed
+
+- Hide the plugin overlay (including the collapsed-branch dock) when a
+  non-conversation panel such as Plugins or Settings is selected, and reshow
+  it when returning to a conversation.
+
 ## [0.1.25] - 2026-11-16
 
 ### Changed
@@ -105,6 +113,14 @@ project follows [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - README screenshots now use absolute CDN URLs so they render on the npm package page.
+
+## [0.1.26] - 2026-11-16
+
+### Fixed
+
+- Hide the plugin overlay (including the collapsed-branch dock) when a
+  non-conversation panel such as Plugins or Settings is selected, and reshow
+  it when returning to a conversation.
 
 ## [0.1.25] - 2026-11-16
 
@@ -302,6 +318,7 @@ project follows [Semantic Versioning](https://semver.org/).
 [0.1.23]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.23
 [0.1.24]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.24
 [0.1.25]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.25
+[0.1.26]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.26
 [0.1.13]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.13
 [0.1.14]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.14
 [0.1.15]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.15
@@ -315,3 +332,4 @@ project follows [Semantic Versioning](https://semver.org/).
 [0.1.23]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.23
 [0.1.24]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.24
 [0.1.25]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.25
+[0.1.26]: https://github.com/gbn0219/dsh-ask-from-text/releases/tag/v0.1.26
