@@ -775,10 +775,10 @@ window.__ModuleLoader__.load({
         getVersion() { return state.version },
         panelActive() {
           const info = ctx.layout?.panelInfo?.getSnapshot?.()
-          if (info && info.activePanelId !== null) return true
-          // A plugin/settings page can be selected while a previous session is
-          // still in the store. The transcript is gone in that case, so hide
-          // every conversation-scoped overlay even if panelInfo is unavailable.
+          // Trust panelInfo when it exists. On the transition back to a
+          // conversation it becomes null before the transcript mounts; falling
+          // back to the DOM here would keep the overlay hidden forever.
+          if (info) return info.activePanelId !== null
           return !document.querySelector('[data-conversation-scroll]')
         },
         emit,
